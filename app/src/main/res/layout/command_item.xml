@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/RelativeLayout1"
+    android:layout_width="match_parent"
+    android:layout_height="39dp"
+    android:background="#36393e"
+    android:layout_marginTop="1dp"
+    android:layout_marginBottom="1dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/commandName"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="84dp"
+        android:layout_marginEnd="90dp"
+        android:ems="10"
+        android:gravity="center_vertical"
+        android:text="Name"
+        android:textSize="20dp"
+        android:background="#36393e"
+        android:textColor="#FFFFFF" />
+
+    <ImageView
+        android:id="@+id/deleteCommand"
+        android:layout_width="48dp"
+        android:layout_height="38dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="1dp"
+        app:srcCompat="@drawable/delete_one" />
+
+    <ImageView
+        android:id="@+id/isDefaultIcon"
+        android:layout_width="48dp"
+        android:layout_height="38dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="1dp"
+        app:srcCompat="@drawable/discord_icon" />
+</RelativeLayout>

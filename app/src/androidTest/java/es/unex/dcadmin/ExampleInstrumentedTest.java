@@ -1,4 +1,4 @@
-package es.unex.myapplication;
+package es.unex.dcadmin;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("es.unex.myapplication", appContext.getPackageName());
+        assertEquals("es.unex.dcadmin", appContext.getPackageName());
     }
 }

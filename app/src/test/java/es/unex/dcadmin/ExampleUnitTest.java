@@ -1,4 +1,4 @@
-package es.unex.myapplication;
+package es.unex.dcadmin;
 
 import org.junit.Test;
 
