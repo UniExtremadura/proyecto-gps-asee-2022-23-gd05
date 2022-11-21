@@ -4,7 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -18,7 +18,7 @@ import es.unex.dcadmin.AppExecutors;
 import es.unex.dcadmin.R;
 import es.unex.dcadmin.roomdb.AppDatabase;
 
-public class CommandActivity extends AppCompatActivity {
+public class CommandActivity extends AppCompatActivity implements AddCommandFragment.OnCallbackReceivedAdd{
     //La activity implementa el callback
 
     private static final int ADD_TODO_ITEM_REQUEST = 0;
@@ -39,32 +39,24 @@ public class CommandActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_command);
 
-
-
-
         mRecyclerView = findViewById(R.id.commandRecyclerView);
-
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
 
         // use a linear layout manager
-        //TODO - Set a Linear Layout Manager to the RecyclerView
         //Este layoutmanager es para manejar las rejillas del recyclerview
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);//Le asignamos el layoutmanager al recycler view para que así podamos ir por cada fila de las actividades creadas
 
-        //TODO - Create a new Adapter for the RecyclerView
-        // specify an adapter (see also next example)
         //Adapter adapta los datos del modelo a una vista, mostrará los datos Java de la forma que se hayan definido en el adapter y así se verán en el recyclerview
         mAdapter = new CommandAdapter(new CommandAdapter.OnItemClickListener() {//Cuando se clicke el elemento haga algo
             @Override
             public void onItemClick(Command item) {//Cuando se clicke mostrará el detalle
+            }
+        });
 
-            }});
-
-        //TODO - Attach the adapter to the RecyclerView
         mRecyclerView.setAdapter(mAdapter);
 
         BottomNavigationView bottomNavigationView;
@@ -73,19 +65,40 @@ public class CommandActivity extends AppCompatActivity {
 
         //getSupportActionBar().hide();
         AppDatabase.getInstance(this);
+    }
 
-        Context context = this;
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {//Este método no hace nada ya
+        super.onActivityResult(requestCode, resultCode, data);
+        //Esto se ejecuta cuando le hemos dado a OK a añadir una tarea
+        log("Entered onActivityResult()");
+
+        if(requestCode == ADD_TODO_ITEM_REQUEST && resultCode == RESULT_OK){//Si ha ido bien
+            Command toDoItem = new Command(data);//Creamos un objeto con los datos de la tarea
+            mAdapter.add(toDoItem);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
+        }
+    }
+
+    @Override
+    public void AddCommand(String name, String trigger, String action) {//El método que llama el fragment antes de morir pasando los datos
+        // Write your logic here.
+
+        //mAdapter.add(command);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
+
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {//Porque operaciones de DB no se pueden hacer en el hilo principal
             @Override
             public void run() {
-                Command c = new Command("Test","Test","Test");
-                AppDatabase.getInstance(context).getCommandDao().insert(c);
+                Command command = new Command(name, trigger, action);//Creamos un objeto con los datos de la tarea
+                AppDatabase db = AppDatabase.getInstance(CommandActivity.this);
+                long id = db.getCommandDao().insert(command);
+                //update item ID
+                command.setId(id);
+                //insert into adapter list
 
-                runOnUiThread(() -> mAdapter.add(c));
+                //No se puede actualizar la vista fuera del hilo principal por eso hacemos esto, gracias a que estamos en una activity
+                runOnUiThread(() -> mAdapter.add(command));
             }
         });
-
-
     }
 
     @Override
@@ -101,11 +114,6 @@ public class CommandActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-
-        // Save Commands
-
-        //saveItems();
-
     }
 
     @Override
@@ -116,10 +124,6 @@ public class CommandActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        /*super.onCreateOptionsMenu(menu);
-
-        menu.add(Menu.NONE, MENU_DELETE, Menu.NONE, "Delete all");
-        menu.add(Menu.NONE, MENU_DUMP, Menu.NONE, "Dump to log");*/
         return true;
     }
 
@@ -130,6 +134,10 @@ public class CommandActivity extends AppCompatActivity {
                  //Quita el token de shared preferences y llama a la Activity / quita el token y cierra la aplicación
                 return true;
             case R.id.page_2:
+                AddCommandFragment fragment = new AddCommandFragment();
+                getSupportFragmentManager().beginTransaction() .replace(R.id.content_to_do_manager, fragment)
+                        .addToBackStack(null)
+                        .commit();
                 return true;
 
             case R.id.page_3:
@@ -141,12 +149,10 @@ public class CommandActivity extends AppCompatActivity {
     }
 
     private void dump() {
-
         for (int i = 0; i < mAdapter.getItemCount(); i++) {
             String data = ((Command) mAdapter.getItem(i)).toLog();
             log("Item " + i);
         }
-
     }
 
     // Load stored ToDoItems
