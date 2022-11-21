@@ -9,8 +9,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ImageView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -41,24 +39,17 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_command);
 
-
-
-
         mRecyclerView = findViewById(R.id.commandRecyclerView);
-
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
 
         // use a linear layout manager
-        //TODO - Set a Linear Layout Manager to the RecyclerView
         //Este layoutmanager es para manejar las rejillas del recyclerview
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);//Le asignamos el layoutmanager al recycler view para que así podamos ir por cada fila de las actividades creadas
 
-        //TODO - Create a new Adapter for the RecyclerView
-        // specify an adapter (see also next example)
         //Adapter adapta los datos del modelo a una vista, mostrará los datos Java de la forma que se hayan definido en el adapter y así se verán en el recyclerview
         mAdapter = new CommandAdapter(new CommandAdapter.OnItemClickListener() {//Cuando se clicke el elemento haga algo
             @Override
@@ -66,10 +57,7 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
             }
         });
 
-        //TODO - Attach the adapter to the RecyclerView
         mRecyclerView.setAdapter(mAdapter);
-
-
 
         BottomNavigationView bottomNavigationView;
         bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottomNavigationView);
@@ -85,13 +73,10 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         //Esto se ejecuta cuando le hemos dado a OK a añadir una tarea
         log("Entered onActivityResult()");
 
-        // TODO - Check result code and request code.
         if(requestCode == ADD_TODO_ITEM_REQUEST && resultCode == RESULT_OK){//Si ha ido bien
             Command toDoItem = new Command(data);//Creamos un objeto con los datos de la tarea
             mAdapter.add(toDoItem);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
         }
-
-        //TODO - Create a TodoItem from data and add it to the adapter
     }
 
     @Override
@@ -114,9 +99,7 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
                 runOnUiThread(() -> mAdapter.add(command));
             }
         });
-
     }
-
 
     @Override
     public void onResume() {
@@ -131,11 +114,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     @Override
     protected void onPause() {
         super.onPause();
-
-        // Save Commands
-
-        //saveItems();
-
     }
 
     @Override
@@ -146,10 +124,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        /*super.onCreateOptionsMenu(menu);
-
-        menu.add(Menu.NONE, MENU_DELETE, Menu.NONE, "Delete all");
-        menu.add(Menu.NONE, MENU_DUMP, Menu.NONE, "Dump to log");*/
         return true;
     }
 
@@ -160,10 +134,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
                  //Quita el token de shared preferences y llama a la Activity / quita el token y cierra la aplicación
                 return true;
             case R.id.page_2:
-                /*if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-                    getSupportFragmentManager().popBackStack(getSupportFragmentManager().getBackStackEntryAt(0).getId(), getSupportFragmentManager().POP_BACK_STACK_INCLUSIVE);
-                } else {
-                    super.onBackPressed();}*/
                 AddCommandFragment fragment = new AddCommandFragment();
                 getSupportFragmentManager().beginTransaction() .replace(R.id.content_to_do_manager, fragment)
                         .addToBackStack(null)
@@ -179,12 +149,10 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     }
 
     private void dump() {
-
         for (int i = 0; i < mAdapter.getItemCount(); i++) {
             String data = ((Command) mAdapter.getItem(i)).toLog();
             log("Item " + i);
         }
-
     }
 
     // Load stored ToDoItems
@@ -198,28 +166,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         });
     }
 
-    // Save ToDoItems to file
-    /*private void saveItems() {
-        PrintWriter writer = null;
-        try {
-            FileOutputStream fos = openFileOutput(FILE_NAME, MODE_PRIVATE);
-            writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(
-                    fos)));
-
-            for (int idx = 0; idx < mAdapter.getItemCount(); idx++) {
-
-                writer.println(mAdapter.getItem(idx));
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (null != writer) {
-                writer.close();
-            }
-        }
-    }*/
-
     private void log(String msg) {
         try {
             Thread.sleep(500);
@@ -228,11 +174,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         }
         Log.i(TAG, msg);
     }
-
-    /*@Override
-    public void onBackPressed(){ //Para no acceder a la pantalla de añadir token si ya lo hemos añadido
-        moveTaskToBack(true);
-    }*/
 
 }
 

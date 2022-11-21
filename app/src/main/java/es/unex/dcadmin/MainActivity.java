@@ -7,14 +7,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.javacord.api.DiscordApi;
-import org.javacord.api.DiscordApiBuilder;
-
 import android.content.Intent;
-import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
 import es.unex.dcadmin.command.CommandActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -54,10 +48,5 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
-
     }
-
-
-
-
 }
