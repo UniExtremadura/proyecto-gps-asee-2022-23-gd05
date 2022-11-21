@@ -16,7 +16,7 @@ import java.text.ParseException;
 
 
 // Do not modify
-@Entity(tableName="command", indices = {@Index(value = "trigger_text", unique = true)})
+@Entity(tableName="command")
 public class Command {
     @Ignore
     public final static String NAME = "name";

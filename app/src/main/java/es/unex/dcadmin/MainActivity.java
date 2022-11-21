@@ -3,50 +3,72 @@ package es.unex.dcadmin;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.widget.EditText;
-import android.widget.ImageView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import es.unex.dcadmin.discord.discordApiManager;
 import es.unex.dcadmin.command.CommandActivity;
 
 public class MainActivity extends AppCompatActivity {
     SharedPreferences prefs;
     String token;
+    public static TextView mensaje;
+    public static ProgressBar progressBar;
+    public static View.OnClickListener listener;
+    public static View layout;
+
+    public static View access;
+    public static TextView tokenEditText;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
         super.onCreate(savedInstanceState);
-        //Comprobar si existe ya el token, si existe, saltar a CommandActivity
         prefs  = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         setContentView(R.layout.activity_add_bot_token);
+        mensaje = findViewById(R.id.infoMessage);
+        progressBar = findViewById(R.id.progressBar);
+
+        layout = findViewById(R.id.entireScreen);
 
         token = prefs.getString("token", "");
+        tokenEditText = findViewById(R.id.addTokenView);
+        tokenEditText.setText(token);
+        tokenEditText.setHint("Token...");
 
-        EditText tokenEditText = findViewById(R.id.addTokenView);
-
-        if(!token.equals("")) {
-            tokenEditText.setText(token);
-        }else{
-            tokenEditText.setText("");
-            tokenEditText.setHint("Token...");
-        }
-
-        ImageView access = findViewById(R.id.access);
-
-        access.setOnClickListener(view -> {
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString("token", tokenEditText.getText().toString());
-            editor.commit();
-        });
-        ImageView command_b = findViewById(R.id.access);
-        command_b.setOnClickListener(new View.OnClickListener() {
+        listener = new View.OnClickListener() {
+            @Override
             public void onClick(View v) {
-                //Guardar token
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString("token", tokenEditText.getText().toString());
+                editor.commit();
+
                 Intent i = new Intent(MainActivity.this, CommandActivity.class);
                 startActivity(i);
             }
+        };
+
+        access = findViewById(R.id.access);
+
+        access.setOnClickListener(view -> {
+            // Bloquear pantalla a la espera de que se desbloquee
+            access.setClickable(false);
+            MainActivity.tokenEditText.setClickable(false);
+            progressBar.setVisibility(View.VISIBLE);
+
+            discordApiManager.setToken(MainActivity.tokenEditText.getText().toString());
+            discordApiManager.getSingleton();
         });
+
+
+
     }
+
 }
