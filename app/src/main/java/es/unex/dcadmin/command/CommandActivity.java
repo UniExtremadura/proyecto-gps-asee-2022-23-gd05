@@ -21,7 +21,7 @@ import es.unex.dcadmin.AppExecutors;
 import es.unex.dcadmin.R;
 import es.unex.dcadmin.roomdb.AppDatabase;
 
-public class CommandActivity extends AppCompatActivity implements AddCommandFragment.OnCallbackReceivedAdd{
+public class CommandActivity extends AppCompatActivity implements AddCommandFragment.OnCallbackReceivedAdd, CommandDetail.OnCallbackReceivedUpdate {
     //La activity implementa el callback
 
     private static final int ADD_TODO_ITEM_REQUEST = 0;
@@ -85,7 +85,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setOnItemSelectedListener(this::onOptionsItemSelected);
 
-        //getSupportActionBar().hide();
         AppDatabase.getInstance(this);
     }
 
@@ -103,10 +102,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
     @Override
     public void AddCommand(String name, String trigger, String action) {//El método que llama el fragment antes de morir pasando los datos
-        // Write your logic here.
-
-        //mAdapter.add(command);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
-
         AppExecutors.getInstance().diskIO().execute(new Runnable() {//Porque operaciones de DB no se pueden hacer en el hilo principal
             @Override
             public void run() {
@@ -119,6 +114,20 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
                 //No se puede actualizar la vista fuera del hilo principal por eso hacemos esto, gracias a que estamos en una activity
                 runOnUiThread(() -> mAdapter.add(command));
+            }
+        });
+
+    }
+
+    @Override
+    public void UpdateCommand(Command command){
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                AppDatabase db = AppDatabase.getInstance(CommandActivity.this);
+                db.getCommandDao().update(command);
+
+                runOnUiThread(() -> mAdapter.update(command));
             }
         });
     }
@@ -176,12 +185,10 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     }
 
     private void dump() {
-
         for (int i = 0; i < mAdapter.getItemCount(); i++) {
             String data = ((Command) mAdapter.getItem(i)).toLog();
             log("Item " + i);
         }
-
     }
 
     // Load stored ToDoItems

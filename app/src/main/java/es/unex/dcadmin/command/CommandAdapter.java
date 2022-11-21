@@ -25,6 +25,7 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
 
     // Provide a suitable constructor (depends on the kind of dataset)
     public CommandAdapter(OnItemClickListener listener) {
+
         this.listener = listener;
     }
 

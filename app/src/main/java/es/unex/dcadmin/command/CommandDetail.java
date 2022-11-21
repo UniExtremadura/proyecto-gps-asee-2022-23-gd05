@@ -36,6 +36,12 @@ public class CommandDetail extends Fragment {
 
     private Command command;
 
+    OnCallbackReceivedUpdate mCallback; //Un objeto para que desde el fragment podamos llamar a un método de la activity (para guardar los datos)
+
+    public interface OnCallbackReceivedUpdate { //La interfaz para pasar los datos, los parámetros son los datos
+        public void UpdateCommand(Command command); //Esto llama al método Update que se implementa en la Activity
+    }
+
     public CommandDetail() {
         // Required empty public constructor
     }
@@ -91,7 +97,26 @@ public class CommandDetail extends Fragment {
 
         mActionText.setText(command.getAction_text());
 
+        try {
+            mCallback = (OnCallbackReceivedUpdate) getActivity(); //Se inicializa el callback
+        } catch (ClassCastException e) {
+
+        }
+
         ImageView imageView = v.findViewById(R.id.saveView);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = mTitleText.getText().toString(); //Coge los datos
+                command.setName(mTitleText.getText().toString());
+                command.setAction_text(mActionText.getText().toString());
+                command.setTrigger_text(mTriggerText.getText().toString());
+                mCallback.UpdateCommand(command); //Los manda a la activity
+
+                getActivity().onBackPressed();//Cierra el fragment
+
+            }
+        });
 
         return v;
     }
