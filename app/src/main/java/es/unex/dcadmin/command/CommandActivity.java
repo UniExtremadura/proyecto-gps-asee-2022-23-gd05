@@ -11,6 +11,8 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.content.Context;
+import android.view.View;
 import android.widget.ImageView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -65,6 +67,7 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
                 bundle.putString(CommandDetail.ARG_PARAM1, item.getName());
                 bundle.putString(CommandDetail.ARG_PARAM3, item.getTrigger_text());
                 bundle.putString(CommandDetail.ARG_PARAM4, item.getAction_text());
+
                 //Todos los datos del comando
 
                 fragment.setArguments(bundle);
@@ -75,16 +78,43 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
                         .commit();
 
             }
+        }, new CommandAdapter.OnDeleteClickListener() { //Esto es para el listener de borrar
+            @Override
+            public void onDeleteClick(Command item) {
+                AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        AppDatabase.getInstance(CommandActivity.this).getCommandDao().delete(item);
+
+                        runOnUiThread(() -> mAdapter.delete(item));
+                    }
+                });
+            }
         });
 
         mRecyclerView.setAdapter(mAdapter);
 
         ImageView imageView = findViewById(R.id.deleteAllCommands); //Borrar comando
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        AppDatabase.getInstance(CommandActivity.this).getCommandDao().deleteAll();
+
+                        runOnUiThread(() -> mAdapter.clear());
+                    }
+                });
+            }
+        });
+
 
         BottomNavigationView bottomNavigationView;
         bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setOnItemSelectedListener(this::onOptionsItemSelected);
 
+        //getSupportActionBar().hide();
         AppDatabase.getInstance(this);
     }
 
@@ -102,6 +132,10 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
     @Override
     public void AddCommand(String name, String trigger, String action) {//El método que llama el fragment antes de morir pasando los datos
+        // Write your logic here.
+
+        //mAdapter.add(command);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
+
         AppExecutors.getInstance().diskIO().execute(new Runnable() {//Porque operaciones de DB no se pueden hacer en el hilo principal
             @Override
             public void run() {
@@ -185,6 +219,7 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     }
 
     private void dump() {
+
         for (int i = 0; i < mAdapter.getItemCount(); i++) {
             String data = ((Command) mAdapter.getItem(i)).toLog();
             log("Item " + i);
