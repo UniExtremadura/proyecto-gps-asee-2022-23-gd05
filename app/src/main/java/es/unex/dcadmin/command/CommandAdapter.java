@@ -2,17 +2,15 @@ package es.unex.dcadmin.command;
 
 
 import android.view.LayoutInflater;
-        import android.view.View;
-        import android.view.ViewGroup;
-        import android.widget.CheckBox;
-        import android.widget.CompoundButton;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-        import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 
-        import java.util.ArrayList;
-        import java.util.List;
+import java.util.ArrayList;
+import java.util.List;
 
 import es.unex.dcadmin.R;
 
@@ -23,7 +21,7 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
         void onItemClick(Command item);     //Type of the element to be returned
     }
 
-    public interface OnDeleteClickListener{ //Interfaz del listener de borrar
+    public interface OnDeleteClickListener { //Interfaz del listener de borrar
         void onDeleteClick(Command item);
     }
 
@@ -40,10 +38,9 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
     // Create new views (invoked by the layout manager)
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent,//Parent es la vista padre de este elemento, en este caso la recyclerview, es el que contiene este elemento
-                                                     int viewType) {
-        //TODO - Inflate the View for every element
+                                         int viewType) {
         //A partir de un layout, le metemos los datos a la vista(lo mismo que hacíamos con los fragments, crear una vista)
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.command_item,parent,false);//LayoutInflater solo se puede crear con from. Esto mete los datos en el layout todo_item
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.command_item, parent, false);//LayoutInflater solo se puede crear con from. Esto mete los datos en el layout todo_item
 
         return new ViewHolder(v);
     }
@@ -51,7 +48,7 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.bind(mItems.get(position),listener, deleteListener); //Este último parametro es para el listener de borrar
+        holder.bind(mItems.get(position), listener, deleteListener); //Este último parametro es para el listener de borrar
     }
 
     // Return the size of your dataset (invoked by the layout manager)
@@ -61,57 +58,47 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
     }
 
     public void add(Command item) {
-
         mItems.add(item);
         notifyDataSetChanged();
-
     }
 
-    public void clear(){
-
+    public void clear() {
         mItems.clear();
         notifyDataSetChanged();
-
     }
 
     public Object getItem(int pos) {
-
         return mItems.get(pos);
-
     }
 
-    public void load(List<Command> items){
-
+    public void load(List<Command> items) {
         mItems.clear();
         mItems = items;
         notifyDataSetChanged();
-
     }
 
-    public void update(Command item){
+    public void update(Command item) {
         int pos = -1;
         boolean found = false;
-        for(int i = 0;i<mItems.size() && !found; i++){
-            if(mItems.get(i).getId() == item.getId()){
+        for (int i = 0; i < mItems.size() && !found; i++) {
+            if (mItems.get(i).getId() == item.getId()) {
                 pos = i;
                 found = true;
             }
         }
 
-        if(pos != -1)
-            mItems.set(pos,item);
+        if (pos != -1)
+            mItems.set(pos, item);
 
         notifyDataSetChanged();
-
     }
 
-    public void delete(Command item){
+    public void delete(Command item) {
         int pos = mItems.indexOf(item);
         mItems.remove(item);
 
         notifyItemRemoved(pos);
-        notifyItemRangeChanged(pos,mItems.size());
-
+        notifyItemRangeChanged(pos, mItems.size());
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
@@ -121,16 +108,12 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
 
         public ViewHolder(View itemView) {//itemVIew es la vista que contiene a todos los elementos
             super(itemView);
-
-            //TODO - Get the references to every widget of the Item View
             name = itemView.findViewById(R.id.commandName);
             deleteButton = itemView.findViewById(R.id.deleteCommand);
-
         }
 
         public void bind(final Command toDoItem, final OnItemClickListener listener, final OnDeleteClickListener deleteListener) { //Este ultimo parametro es para el listener de borrar
             //Vamos a vincular las vistas con los datos de toDoItem
-            //TODO - Display Title in TextView
             name.setText(toDoItem.getName());
 
             deleteButton.setOnClickListener(new View.OnClickListener() { //Listener de borrar
@@ -140,9 +123,7 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
                 }
             });
 
-
             itemView.setOnClickListener(new View.OnClickListener() {
-
                 @Override
                 public void onClick(View v) {
                     listener.onItemClick(toDoItem);
@@ -150,5 +131,4 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
             });
         }
     }
-
 }
