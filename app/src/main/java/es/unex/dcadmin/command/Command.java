@@ -5,15 +5,7 @@ import android.content.Intent;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
-import androidx.room.Index;
 import androidx.room.PrimaryKey;
-
-import java.text.ParseException;
-        import java.text.SimpleDateFormat;
-        import java.util.Date;
-        import java.util.Locale;
-
-
 
 // Do not modify
 @Entity(tableName="command")
@@ -63,7 +55,6 @@ public class Command {
     public static void packageIntent(Intent intent, String name) {
         //Esto tambien es para ahorrar código en la otra activity
         intent.putExtra(Command.NAME, name);
-
     }
 
     public String toString() {

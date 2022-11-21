@@ -11,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -56,10 +57,29 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         mAdapter = new CommandAdapter(new CommandAdapter.OnItemClickListener() {//Cuando se clicke el elemento haga algo
             @Override
             public void onItemClick(Command item) {//Cuando se clicke mostrará el detalle
+
+                CommandDetail fragment = new CommandDetail();
+
+                Bundle bundle = new Bundle();
+                bundle.putLong(CommandDetail.ARG_PARAM2, item.getId());
+                bundle.putString(CommandDetail.ARG_PARAM1, item.getName());
+                bundle.putString(CommandDetail.ARG_PARAM3, item.getTrigger_text());
+                bundle.putString(CommandDetail.ARG_PARAM4, item.getAction_text());
+                //Todos los datos del comando
+
+                fragment.setArguments(bundle);
+
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_to_do_manager, fragment)
+                        .addToBackStack(null)
+                        .commit();
+
             }
         });
 
         mRecyclerView.setAdapter(mAdapter);
+
+        ImageView imageView = findViewById(R.id.deleteAllCommands); //Borrar comando
 
         BottomNavigationView bottomNavigationView;
         bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottomNavigationView);
@@ -85,6 +105,8 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     public void AddCommand(String name, String trigger, String action) {//El método que llama el fragment antes de morir pasando los datos
         // Write your logic here.
 
+        //mAdapter.add(command);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
+
         AppExecutors.getInstance().diskIO().execute(new Runnable() {//Porque operaciones de DB no se pueden hacer en el hilo principal
             @Override
             public void run() {
@@ -99,14 +121,15 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
                 runOnUiThread(() -> mAdapter.add(command));
             }
         });
-
     }
 
 
     @Override
     public void onResume() {
         super.onResume();
+
         // Load saved ToDoItems, if necessary
+
         if (mAdapter.getItemCount() == 0)
             loadItems();
     }
@@ -153,10 +176,12 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     }
 
     private void dump() {
+
         for (int i = 0; i < mAdapter.getItemCount(); i++) {
             String data = ((Command) mAdapter.getItem(i)).toLog();
             log("Item " + i);
         }
+
     }
 
     // Load stored ToDoItems

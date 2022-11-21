@@ -63,9 +63,5 @@ public class MainActivity extends AppCompatActivity {
             discordApiManager.setToken(MainActivity.tokenEditText.getText().toString());
             discordApiManager.getSingleton();
         });
-
-
-
     }
-
 }
