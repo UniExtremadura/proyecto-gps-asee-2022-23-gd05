@@ -51,8 +51,8 @@ public class discordApiManager {
                                     MainActivity.mensaje.setVisibility(View.VISIBLE);
                                     MainActivity.mensaje.setText("No se ha podido iniciar sesion el Discord. ¿El token es correcto?");
                                     MainActivity.progressBar.setVisibility(View.INVISIBLE);
-                                    MainActivity.command_b.setClickable(true);
-                                    MainActivity.addTokenView.setClickable(true);
+                                    MainActivity.access.setClickable(true);
+                                    MainActivity.layout.setClickable(true);
                                 }
                             }
                         });
