@@ -5,7 +5,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -83,8 +85,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     public void AddCommand(String name, String trigger, String action) {//El método que llama el fragment antes de morir pasando los datos
         // Write your logic here.
 
-        //mAdapter.add(command);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
-
         AppExecutors.getInstance().diskIO().execute(new Runnable() {//Porque operaciones de DB no se pueden hacer en el hilo principal
             @Override
             public void run() {
@@ -99,14 +99,14 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
                 runOnUiThread(() -> mAdapter.add(command));
             }
         });
+
     }
+
 
     @Override
     public void onResume() {
         super.onResume();
-
         // Load saved ToDoItems, if necessary
-
         if (mAdapter.getItemCount() == 0)
             loadItems();
     }
@@ -131,7 +131,11 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.page_1:
-                 //Quita el token de shared preferences y llama a la Activity / quita el token y cierra la aplicación
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.remove("token");
+                editor.commit();
+
                 return true;
             case R.id.page_2:
                 AddCommandFragment fragment = new AddCommandFragment();
@@ -174,6 +178,4 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         }
         Log.i(TAG, msg);
     }
-
 }
-
