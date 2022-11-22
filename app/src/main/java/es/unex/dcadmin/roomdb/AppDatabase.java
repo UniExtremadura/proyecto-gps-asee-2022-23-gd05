@@ -21,5 +21,9 @@ public abstract class AppDatabase extends RoomDatabase {
         return instance;
     }
 
+    public static void closeInstance(){
+        instance = null;
+    }
+
     public abstract CommandDao getCommandDao();
 }

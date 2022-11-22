@@ -12,8 +12,12 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 
+import es.unex.dcadmin.AppExecutors;
 import es.unex.dcadmin.R;
+import es.unex.dcadmin.roomdb.AppDatabase;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -106,10 +110,35 @@ public class AddCommandFragment extends Fragment {
                 String trigger = mTriggerText.getText().toString();
                 String action = mActionText.getText().toString();
 
-                mCallback.AddCommand(name,trigger,action); //Los manda a la activity
+                //Ejecutarcomando
+                AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(AppDatabase.getInstance(getActivity()).getCommandDao().getByTrigger(trigger) == 0){
 
-                getActivity().onBackPressed();//Cierra el fragment
+                            //Esta linea y el getActivityonbackpressed son para el CU AñadirComando
+                            mCallback.AddCommand(name,trigger,action); //Los manda a la activity
 
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    getActivity().onBackPressed();//Cierra el fragment
+                                }
+                            });
+
+                        }
+                        else{
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Snackbar snackbar = Snackbar.make(v,R.string.InsertErr,Snackbar.LENGTH_SHORT);
+                                    snackbar.show();
+                                }
+                            });
+
+                        }
+                    }
+                });
             }
         });
 

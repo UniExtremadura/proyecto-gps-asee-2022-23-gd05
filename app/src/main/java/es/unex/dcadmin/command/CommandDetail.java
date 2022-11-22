@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +12,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.material.snackbar.Snackbar;
+
+import es.unex.dcadmin.AppExecutors;
 import es.unex.dcadmin.R;
+import es.unex.dcadmin.discord.discordApiManager;
+import es.unex.dcadmin.roomdb.AppDatabase;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -97,23 +104,69 @@ public class CommandDetail extends Fragment {
 
         mActionText.setText(command.getAction_text());
 
+        View lay = v.findViewById(R.id.detailScreen);
+        lay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
         try {
             mCallback = (OnCallbackReceivedUpdate) getActivity(); //Se inicializa el callback
         } catch (ClassCastException e) {
 
         }
 
+        //Ejecutar Comando
+        String previous_trigger_text = command.getTrigger_text();
+
         ImageView imageView = v.findViewById(R.id.saveView);
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String name = mTitleText.getText().toString(); //Coge los datos
-                command.setName(mTitleText.getText().toString());
-                command.setAction_text(mActionText.getText().toString());
-                command.setTrigger_text(mTriggerText.getText().toString());
-                mCallback.UpdateCommand(command); //Los manda a la activity
+                String trigger = mTriggerText.getText().toString();
+                String action = mActionText.getText().toString();
 
-                getActivity().onBackPressed();//Cierra el fragment
+                //EjecutarComando
+                AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(AppDatabase.getInstance(getActivity()).getCommandDao().getByTrigger(trigger) == 0 || AppDatabase.getInstance(getActivity()).getCommandDao().getIdByTrigger(trigger) == command.getId()){ //Puedo actualizar si no hay comandos con este trigger o si el comando con este trigger soy yo
+                            //Estas tres lineas estan aqui para evitar un bug al introducir el Cu Ejecutar Comando, si le dabas a guardar y daba error, como se cambiaba el listener internamente, si despues hacias que guardase bien, el listener anterior se borraba
+                            command.setName(mTitleText.getText().toString());
+                            command.setAction_text(mActionText.getText().toString());
+                            command.setTrigger_text(mTriggerText.getText().toString());
+
+
+                            //Ejecutar comando
+                            discordApiManager.destruir(previous_trigger_text);
+
+                            //Esta linea y el getActivityonbackpressed son para el CU AñadirComando
+                            mCallback.UpdateCommand(command); //Los manda a la activity
+
+
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    getActivity().onBackPressed();//Cierra el fragment
+                                }
+                            });
+
+                        }
+                        else{
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Snackbar snackbar = Snackbar.make(v,R.string.InsertErr,Snackbar.LENGTH_SHORT);
+                                    snackbar.show();
+                                }
+                            });
+
+                        }
+                    }
+                });
 
             }
         });

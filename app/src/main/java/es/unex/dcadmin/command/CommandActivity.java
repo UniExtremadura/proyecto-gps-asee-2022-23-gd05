@@ -4,14 +4,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.content.Context;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -21,7 +22,9 @@ import java.util.List;
 
 import es.unex.dcadmin.AppExecutors;
 import es.unex.dcadmin.R;
+import es.unex.dcadmin.discord.discordApiManager;
 import es.unex.dcadmin.roomdb.AppDatabase;
+
 
 public class CommandActivity extends AppCompatActivity implements AddCommandFragment.OnCallbackReceivedAdd, CommandDetail.OnCallbackReceivedUpdate {
     //La activity implementa el callback
@@ -136,6 +139,8 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
         //mAdapter.add(command);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
 
+        Context context = this; //Esto es para EjecutarComando, para poder obtener la BD en el listener del comando y así añadir elementos al historial
+
         AppExecutors.getInstance().diskIO().execute(new Runnable() {//Porque operaciones de DB no se pueden hacer en el hilo principal
             @Override
             public void run() {
@@ -148,6 +153,9 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
                 //No se puede actualizar la vista fuera del hilo principal por eso hacemos esto, gracias a que estamos en una activity
                 runOnUiThread(() -> mAdapter.add(command));
+
+                //Ejecutar comando (la destruccion está en el adapter en delete y clear)
+                command.construir(discordApiManager.getSingleton(),discordApiManager.getMapaMessageCreated(), context);
             }
         });
 
@@ -155,13 +163,17 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
     @Override
     public void UpdateCommand(Command command){
+        Context context = this;//Esto es para EjecutarComando
         AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override
             public void run() {
                 AppDatabase db = AppDatabase.getInstance(CommandActivity.this);
                 db.getCommandDao().update(command);
 
+                command.construir(discordApiManager.getSingleton(),discordApiManager.getMapaMessageCreated(), context);
                 runOnUiThread(() -> mAdapter.update(command));
+
+                //Ejecutar comando. Esto es para que se actualice el trigger y la accion al modificar
             }
         });
     }
@@ -185,6 +197,18 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     @Override
     protected void onDestroy(){
         AppDatabase.getInstance(this).close();
+        AppDatabase.closeInstance();
+
+        //Para poder cerrar la conexion con la api (Ejecutar comando)
+        AppExecutors.getInstance().networkIO().execute(new Runnable() {
+            @Override
+            public void run() {
+
+                discordApiManager.apagar();
+
+            }
+        });
+
         super.onDestroy();
     }
 
@@ -228,10 +252,18 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
     // Load stored ToDoItems
     private void loadItems() {
+
+        Context context = this; //Esto es para el de ejecutar comando
+
         AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override
             public void run() {
                 List<Command> items = AppDatabase.getInstance(CommandActivity.this).getCommandDao().getAll();
+                for(Command c: items){
+                    if(!c.isConstruido()){
+                        c.construir(discordApiManager.getSingleton(),discordApiManager.getMapaMessageCreated(),context);
+                    }
+                }
                 runOnUiThread(() ->mAdapter.load(items));
             }
         });
