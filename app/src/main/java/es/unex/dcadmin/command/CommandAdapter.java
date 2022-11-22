@@ -3,17 +3,17 @@ package es.unex.dcadmin.command;
 
 import android.content.Context;
 import android.view.LayoutInflater;
-        import android.view.View;
-        import android.view.ViewGroup;
-        import android.widget.CheckBox;
-        import android.widget.CompoundButton;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-        import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 
-        import java.util.ArrayList;
-        import java.util.List;
+import java.util.ArrayList;
+import java.util.List;
 
 import es.unex.dcadmin.R;
 import es.unex.dcadmin.discord.discordApiManager;
@@ -43,7 +43,7 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
     // Create new views (invoked by the layout manager)
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent,//Parent es la vista padre de este elemento, en este caso la recyclerview, es el que contiene este elemento
-                                                     int viewType) {
+                                         int viewType) {
         //TODO - Inflate the View for every element
         //A partir de un layout, le metemos los datos a la vista(lo mismo que hacíamos con los fragments, crear una vista)
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.command_item,parent,false);//LayoutInflater solo se puede crear con from. Esto mete los datos en el layout todo_item
@@ -92,7 +92,6 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
 
         mItems.clear();
         mItems = items;
-
         notifyDataSetChanged();
 
     }

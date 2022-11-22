@@ -81,7 +81,6 @@ public class Command {
     public static void packageIntent(Intent intent, String name) {
         //Esto tambien es para ahorrar código en la otra activity
         intent.putExtra(Command.NAME, name);
-
     }
 
     public String toString() {
