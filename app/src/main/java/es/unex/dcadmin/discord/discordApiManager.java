@@ -1,10 +1,15 @@
 package es.unex.dcadmin.discord;
 
+import android.content.Intent;
 import android.os.Build;
 import android.view.View;
 
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
+import org.javacord.api.listener.message.MessageCreateListener;
+import org.javacord.api.util.event.ListenerManager;
+
+import java.util.HashMap;
 
 import es.unex.dcadmin.AppExecutors;
 import es.unex.dcadmin.MainActivity;
@@ -12,6 +17,8 @@ import es.unex.dcadmin.MainActivity;
 public class discordApiManager {
     private static DiscordApi api = null;
     private static String token = "";
+    private static HashMap<String, ListenerManager<MessageCreateListener>> mapaMessageCreated = new HashMap<>();
+
 
     public static DiscordApi getSingleton() {
         if (api == null) {
@@ -43,8 +50,8 @@ public class discordApiManager {
                                     MainActivity.mensaje.setVisibility(View.VISIBLE);
                                     MainActivity.mensaje.setText("No se ha podido iniciar sesion el Discord. ¿El token es correcto?");
                                     MainActivity.progressBar.setVisibility(View.INVISIBLE);
-                                    MainActivity.command_b.setClickable(true);
-                                    MainActivity.addTokenView.setClickable(true);
+                                    MainActivity.access.setClickable(true);
+                                    MainActivity.tokenEditText.setClickable(true);
                                 }
                             }
                         });
@@ -56,6 +63,10 @@ public class discordApiManager {
         return api;
     }
 
+    public static String getToken() {
+        return token;
+    }
+
     public static void setToken(String token) {
         discordApiManager.token = token;
     }
@@ -64,4 +75,15 @@ public class discordApiManager {
         if(api != null) api.disconnect();
         api = null;
     }
+    public static HashMap<String, ListenerManager<MessageCreateListener>> getMapaMessageCreated() {
+        return mapaMessageCreated;
+    }
+
+    public static void destruir(String trigger_text){
+        if(mapaMessageCreated.get(trigger_text) != null) {
+            api.removeListener(mapaMessageCreated.get(trigger_text).getListener());
+            mapaMessageCreated.remove(trigger_text);
+        }
+    }
+
 }
