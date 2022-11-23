@@ -51,11 +51,8 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
         mRecyclerView = findViewById(R.id.commandRecyclerView);
 
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
 
-        // use a linear layout manager
         //Este layoutmanager es para manejar las rejillas del recyclerview
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);//Le asignamos el layoutmanager al recycler view para que así podamos ir por cada fila de las actividades creadas
@@ -114,7 +111,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         mRecyclerView.setAdapter(mAdapter);
 
         ImageView imageView = findViewById(R.id.deleteAllCommands); //Borrar comando
-
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

@@ -78,6 +78,13 @@ public class CommandRecordList extends Fragment {
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
+        View lay = v.findViewById(R.id.content_to_do_manager);
+        lay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+            }
+        });
+
         mAdapter = new CommandRecordAdapter(new CommandRecordAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(CommandRecord item) {

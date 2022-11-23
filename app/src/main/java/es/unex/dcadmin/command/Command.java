@@ -15,6 +15,7 @@ import org.javacord.api.util.event.ListenerManager;
 
 import java.util.HashMap;
 
+import es.unex.dcadmin.commandRecord.CommandRecord;
 import es.unex.dcadmin.roomdb.AppDatabase;
 
 
@@ -140,6 +141,18 @@ public class Command {
                 // Definir aqui el parametro que necesitara la accion.
                 TextChannel canal = event.getChannel();
                 canal.sendMessage(action_text);
+
+                //Esto es para el historial de comandos, modificar el usuario
+                //Ahora añadimos a la BD si no estaba ya, para ello, comprobamos si estaba, si estaba, actualizamos sumando 1 en
+                CommandRecord cr = AppDatabase.getInstance(context).getCommandRecordDao().get(getName(),event.getMessageAuthor().getDisplayName());
+                if(cr != null){
+                    cr.setNumExecutions(cr.getNumExecutions()+1);
+                    AppDatabase.getInstance(context).getCommandRecordDao().update(cr);
+                }
+                else{
+                    cr = new CommandRecord(getName(),1,event.getMessageAuthor().getDisplayName());
+                    AppDatabase.getInstance(context).getCommandRecordDao().insert(cr);
+                }
 
             }
         });
