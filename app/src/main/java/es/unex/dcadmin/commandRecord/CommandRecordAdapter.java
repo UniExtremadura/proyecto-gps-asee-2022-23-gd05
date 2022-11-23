@@ -12,7 +12,6 @@ import java.util.List;
 
 import es.unex.dcadmin.R;
 
-
 public class CommandRecordAdapter extends RecyclerView.Adapter<CommandRecordAdapter.ViewHolder> {
     private List<CommandRecord> mItems = new ArrayList<CommandRecord>();
 
@@ -38,7 +37,6 @@ public class CommandRecordAdapter extends RecyclerView.Adapter<CommandRecordAdap
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent,//Parent es la vista padre de este elemento, en este caso la recyclerview, es el que contiene este elemento
                                                                               int viewType) {
-        //TODO - Inflate the View for every element
         //A partir de un layout, le metemos los datos a la vista(lo mismo que hacíamos con los fragments, crear una vista)
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.command_record_item,parent,false);//LayoutInflater solo se puede crear con from. Esto mete los datos en el layout todo_item
 
@@ -120,7 +118,6 @@ public class CommandRecordAdapter extends RecyclerView.Adapter<CommandRecordAdap
         public ViewHolder(View itemView) {//itemVIew es la vista que contiene a todos los elementos
             super(itemView);
 
-            //TODO - Get the references to every widget of the Item View
             name = itemView.findViewById(R.id.commandName);
             user = itemView.findViewById(R.id.command_user);
             numExecutions = itemView.findViewById(R.id.command_num_executions);
@@ -128,7 +125,6 @@ public class CommandRecordAdapter extends RecyclerView.Adapter<CommandRecordAdap
 
         public void bind(final CommandRecord toDoItem, final OnItemClickListener listener, final OnDeleteClickListener deleteListener) { //Este ultimo parametro es para el listener de borrar
             //Vamos a vincular las vistas con los datos de toDoItem
-            //TODO - Display Title in TextView
             name.setText(toDoItem.getName());
 
             user.setText(toDoItem.getUserId());

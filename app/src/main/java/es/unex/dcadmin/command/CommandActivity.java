@@ -4,13 +4,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.content.Context;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -19,6 +21,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import java.util.List;
 
 import es.unex.dcadmin.AppExecutors;
+import es.unex.dcadmin.MainActivity;
 import es.unex.dcadmin.R;
 import es.unex.dcadmin.commandRecord.CommandRecordList;
 import es.unex.dcadmin.discord.discordApiManager;
@@ -46,11 +49,7 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_command);
 
-
-
-
         mRecyclerView = findViewById(R.id.commandRecyclerView);
-
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
@@ -101,6 +100,20 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
             }
         });
 
+        ImageView command_list = findViewById(R.id.command_record_list); //Lista de comandos
+        command_list.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                CommandRecordList fragment = new CommandRecordList();
+
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_to_do_manager, fragment)
+                        .addToBackStack(null)
+                        .commit();
+
+            }
+        });
+
         //TODO - Attach the adapter to the RecyclerView
         mRecyclerView.setAdapter(mAdapter);
 
@@ -119,20 +132,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
             }
         });
 
-        ImageView command_list = findViewById(R.id.command_record_list); //Lista de comandos
-        command_list.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                CommandRecordList fragment = new CommandRecordList();
-
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content_to_do_manager, fragment)
-                        .addToBackStack(null)
-                        .commit();
-
-            }
-        });
-
 
         BottomNavigationView bottomNavigationView;
         bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottomNavigationView);
@@ -140,8 +139,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
         //getSupportActionBar().hide();
         AppDatabase.getInstance(this);
-
-
     }
 
     @Override
@@ -187,23 +184,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
     }
 
-    @Override
-    public void UpdateCommand(Command command){
-        Context context = this;//Esto es para EjecutarComando
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                AppDatabase db = AppDatabase.getInstance(CommandActivity.this);
-                db.getCommandDao().update(command);
-
-                command.construir(discordApiManager.getSingleton(),discordApiManager.getMapaMessageCreated(), context);
-                runOnUiThread(() -> mAdapter.update(command));
-
-                //Ejecutar comando. Esto es para que se actualice el trigger y la accion al modificar
-            }
-        });
-    }
-
 
     @Override
     public void onResume() {
@@ -228,6 +208,7 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     @Override
     protected void onDestroy(){
         AppDatabase.getInstance(this).close();
+        AppDatabase.closeInstance();
 
         //Para poder cerrar la conexion con la api (Ejecutar comando)
         AppExecutors.getInstance().networkIO().execute(new Runnable() {
@@ -245,7 +226,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         /*super.onCreateOptionsMenu(menu);
-
         menu.add(Menu.NONE, MENU_DELETE, Menu.NONE, "Delete all");
         menu.add(Menu.NONE, MENU_DUMP, Menu.NONE, "Dump to log");*/
         return true;
@@ -255,7 +235,18 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.page_1:
-                 //Quita el token de shared preferences y llama a la Activity / quita el token y cierra la aplicación
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.remove("token");
+                editor.commit();
+
+
+                Intent i = new Intent(CommandActivity.this, MainActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(i);
+
+                this.finish();
+
                 return true;
             case R.id.page_2:
                 /*if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
@@ -304,27 +295,22 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         });
     }
 
-    // Save ToDoItems to file
-    /*private void saveItems() {
-        PrintWriter writer = null;
-        try {
-            FileOutputStream fos = openFileOutput(FILE_NAME, MODE_PRIVATE);
-            writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(
-                    fos)));
+    @Override
+    public void UpdateCommand(Command command){
+        Context context = this;//Esto es para EjecutarComando
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                AppDatabase db = AppDatabase.getInstance(CommandActivity.this);
+                db.getCommandDao().update(command);
 
-            for (int idx = 0; idx < mAdapter.getItemCount(); idx++) {
+                command.construir(discordApiManager.getSingleton(),discordApiManager.getMapaMessageCreated(), context);
+                runOnUiThread(() -> mAdapter.update(command));
 
-                writer.println(mAdapter.getItem(idx));
-
+                //Ejecutar comando. Esto es para que se actualice el trigger y la accion al modificar
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (null != writer) {
-                writer.close();
-            }
-        }
-    }*/
+        });
+    }
 
     private void log(String msg) {
         try {
@@ -334,11 +320,4 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         }
         Log.i(TAG, msg);
     }
-
-    /*@Override
-    public void onBackPressed(){ //Para no acceder a la pantalla de añadir token si ya lo hemos añadido
-        moveTaskToBack(true);
-    }*/
-
 }
-

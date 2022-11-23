@@ -39,19 +39,19 @@ public class discordApiManager {
                             public void run() {
                                 //Cambiar la interfaz
                                 //Ocultar el spinner y desocultar el boton
-
                                 if(api != null) {
-                                    MainActivity.mensaje.setVisibility(View.VISIBLE);
                                     MainActivity.mensaje.setText("Pulsa en cualquier lugar para continuar");
+                                    MainActivity.mensaje.setVisibility(View.VISIBLE);
                                     MainActivity.progressBar.setVisibility(View.INVISIBLE);
                                     MainActivity.layout.setOnClickListener(MainActivity.listener);
                                 }
-                                else{
+                                else
+                                {
                                     MainActivity.mensaje.setVisibility(View.VISIBLE);
-                                    MainActivity.mensaje.setText("No se ha podido iniciar sesión en Discord. ¿El token es correcto?");
+                                    MainActivity.mensaje.setText("No se ha podido iniciar sesion el Discord. ¿El token es correcto?");
                                     MainActivity.progressBar.setVisibility(View.INVISIBLE);
-                                    MainActivity.command_b.setClickable(true);
-                                    MainActivity.addTokenView.setClickable(true);
+                                    MainActivity.access.setClickable(true);
+                                    MainActivity.tokenEditText.setClickable(true);
                                 }
                             }
                         });
@@ -71,6 +71,10 @@ public class discordApiManager {
         discordApiManager.token = token;
     }
 
+    public static void apagar(){
+        if(api != null) api.disconnect();
+        api = null;
+    }
     public static HashMap<String, ListenerManager<MessageCreateListener>> getMapaMessageCreated() {
         return mapaMessageCreated;
     }
@@ -82,8 +86,4 @@ public class discordApiManager {
         }
     }
 
-    public static void apagar(){
-        api.disconnect();
-        api = null;
-    }
 }

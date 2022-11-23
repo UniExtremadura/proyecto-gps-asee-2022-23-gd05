@@ -7,9 +7,8 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-import es.unex.dcadmin.command.Command;
 import es.unex.dcadmin.commandRecord.CommandRecord;
-
+import es.unex.dcadmin.command.Command;
 
 @Database(entities = {Command.class, CommandRecord.class}, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
@@ -20,6 +19,10 @@ public abstract class AppDatabase extends RoomDatabase {
             instance = Room.databaseBuilder(context, AppDatabase.class,"database.db").build();
 
         return instance;
+    }
+
+    public static void closeInstance(){
+        instance = null;
     }
 
     public abstract CommandDao getCommandDao();

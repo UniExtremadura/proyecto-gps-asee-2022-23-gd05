@@ -26,15 +26,12 @@ import es.unex.dcadmin.roomdb.AppDatabase;
  * create an instance of this fragment.
  */
 public class CommandDetail extends Fragment {
-
-    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     public static final String ARG_PARAM1 = "param1";
     public static final String ARG_PARAM2 = "param2";
     public static final String ARG_PARAM3 = "param3";
     public static final String ARG_PARAM4 = "param4";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
     private String mParam3;
@@ -64,7 +61,6 @@ public class CommandDetail extends Fragment {
      * @param param2 Parameter 2.
      * @return A new instance of fragment CommandDetail.
      */
-    // TODO: Rename and change types and number of parameters
     public static CommandDetail newInstance(String param1, String param2, String param3, String param4) {
         CommandDetail fragment = new CommandDetail();
         Bundle args = new Bundle();
@@ -107,6 +103,14 @@ public class CommandDetail extends Fragment {
         mTriggerText.setText(command.getTrigger_text());
 
         mActionText.setText(command.getAction_text());
+
+        View lay = v.findViewById(R.id.detailScreen);
+        lay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
 
         try {
             mCallback = (OnCallbackReceivedUpdate) getActivity(); //Se inicializa el callback
