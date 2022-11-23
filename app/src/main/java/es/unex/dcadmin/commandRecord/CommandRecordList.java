@@ -92,6 +92,21 @@ public class CommandRecordList extends Fragment {
 
         mRecyclerView.setAdapter(mAdapter);
 
+        ImageView delImage = v.findViewById(R.id.deleteCommandRecord); //Borrar historial
+        delImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        AppDatabase.getInstance(getActivity()).getCommandRecordDao().deleteAll();
+
+                        getActivity().runOnUiThread(() -> mAdapter.clear());
+                    }
+                });
+            }
+        });
+
         return v;
     }
 

@@ -12,7 +12,6 @@ import java.util.List;
 
 import es.unex.dcadmin.R;
 
-
 public class CommandRecordAdapter extends RecyclerView.Adapter<CommandRecordAdapter.ViewHolder> {
     private List<CommandRecord> mItems = new ArrayList<CommandRecord>();
 
