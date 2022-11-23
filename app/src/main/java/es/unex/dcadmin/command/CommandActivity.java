@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -13,6 +12,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.content.Context;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -22,6 +22,7 @@ import java.util.List;
 
 import es.unex.dcadmin.AppExecutors;
 import es.unex.dcadmin.R;
+import es.unex.dcadmin.commandRecord.CommandRecordList;
 import es.unex.dcadmin.discord.discordApiManager;
 import es.unex.dcadmin.roomdb.AppDatabase;
 
@@ -57,6 +58,7 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         //Este layoutmanager es para manejar las rejillas del recyclerview
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);//Le asignamos el layoutmanager al recycler view para que así podamos ir por cada fila de las actividades creadas
+
 
         //Adapter adapta los datos del modelo a una vista, mostrará los datos Java de la forma que se hayan definido en el adapter y así se verán en el recyclerview
         mAdapter = new CommandAdapter(new CommandAdapter.OnItemClickListener() {//Cuando se clicke el elemento haga algo
@@ -95,9 +97,24 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
             }
         });
 
+        ImageView command_list = findViewById(R.id.command_record_list); //Lista de comandos
+        command_list.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                CommandRecordList fragment = new CommandRecordList();
+
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_to_do_manager, fragment)
+                        .addToBackStack(null)
+                        .commit();
+
+            }
+        });
+
         mRecyclerView.setAdapter(mAdapter);
 
         ImageView imageView = findViewById(R.id.deleteAllCommands); //Borrar comando
+
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -117,7 +134,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setOnItemSelectedListener(this::onOptionsItemSelected);
 
-        //getSupportActionBar().hide();
         AppDatabase.getInstance(this);
     }
 
@@ -127,15 +143,15 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         //Esto se ejecuta cuando le hemos dado a OK a añadir una tarea
         log("Entered onActivityResult()");
 
-        if(requestCode == ADD_TODO_ITEM_REQUEST && resultCode == RESULT_OK){//Si ha ido bien
+        if (requestCode == ADD_TODO_ITEM_REQUEST && resultCode == RESULT_OK) {//Si ha ido bien
             Command toDoItem = new Command(data);//Creamos un objeto con los datos de la tarea
             mAdapter.add(toDoItem);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
         }
+
     }
 
     @Override
     public void AddCommand(String name, String trigger, String action) {//El método que llama el fragment antes de morir pasando los datos
-        // Write your logic here.
 
         //mAdapter.add(command);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
 
@@ -161,23 +177,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
     }
 
-    @Override
-    public void UpdateCommand(Command command){
-        Context context = this;//Esto es para EjecutarComando
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                AppDatabase db = AppDatabase.getInstance(CommandActivity.this);
-                db.getCommandDao().update(command);
-
-                command.construir(discordApiManager.getSingleton(),discordApiManager.getMapaMessageCreated(), context);
-                runOnUiThread(() -> mAdapter.update(command));
-
-                //Ejecutar comando. Esto es para que se actualice el trigger y la accion al modificar
-            }
-        });
-    }
-
 
     @Override
     public void onResume() {
@@ -192,6 +191,7 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     @Override
     protected void onPause() {
         super.onPause();
+
     }
 
     @Override
@@ -248,6 +248,7 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
             String data = ((Command) mAdapter.getItem(i)).toLog();
             log("Item " + i);
         }
+
     }
 
     // Load stored ToDoItems
@@ -265,6 +266,23 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
                     }
                 }
                 runOnUiThread(() ->mAdapter.load(items));
+            }
+        });
+    }
+
+    @Override
+    public void UpdateCommand(Command command){
+        Context context = this;//Esto es para EjecutarComando
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                AppDatabase db = AppDatabase.getInstance(CommandActivity.this);
+                db.getCommandDao().update(command);
+
+                command.construir(discordApiManager.getSingleton(),discordApiManager.getMapaMessageCreated(), context);
+                runOnUiThread(() -> mAdapter.update(command));
+
+                //Ejecutar comando. Esto es para que se actualice el trigger y la accion al modificar
             }
         });
     }
