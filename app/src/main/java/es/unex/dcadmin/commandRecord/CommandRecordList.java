@@ -96,15 +96,6 @@ public class CommandRecordList extends Fragment {
 
         mRecyclerView.setAdapter(mAdapter);
 
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                CommandRecord cr = new CommandRecord("Nombre",3,"UsuarioTest");
-                AppDatabase.getInstance(getActivity()).getCommandRecordDao().insert(cr);
-                getActivity().runOnUiThread(() -> mAdapter.add(cr));
-            }
-        });
-
         return v;
     }
 
