@@ -6,13 +6,18 @@ import android.view.View;
 
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
+import org.javacord.api.entity.server.Server;
+import org.javacord.api.entity.user.User;
 import org.javacord.api.listener.message.MessageCreateListener;
 import org.javacord.api.util.event.ListenerManager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import es.unex.dcadmin.AppExecutors;
 import es.unex.dcadmin.MainActivity;
+import es.unex.dcadmin.users.Member;
 
 public class discordApiManager {
     private static DiscordApi api = null;
@@ -28,7 +33,7 @@ public class discordApiManager {
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         try {
-                            api = new DiscordApiBuilder().setToken(token).login().join();
+                            api = new DiscordApiBuilder().setToken(token).setAllIntents().login().join();
                         }catch(Exception ex)
                         {
                             ex.printStackTrace();
@@ -61,6 +66,19 @@ public class discordApiManager {
             });
         }
         return api;
+    }
+
+    public static List<Member> getUsers() {
+        List<Server> servers = new ArrayList<>(getSingleton().getServers());
+        List<Member> members = new ArrayList<>();
+
+        for(Server s: servers) {
+            for(User u: s.getMembers()) {
+                Member m = new Member(u.getId(), u.getName(), u.getAvatar().getUrl(), s.getName());
+                members.add(m);
+            }
+        }
+        return members;
     }
 
     public static String getToken() {

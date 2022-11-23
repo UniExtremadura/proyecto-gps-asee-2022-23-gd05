@@ -26,6 +26,7 @@ import es.unex.dcadmin.R;
 import es.unex.dcadmin.commandRecord.CommandRecordList;
 import es.unex.dcadmin.discord.discordApiManager;
 import es.unex.dcadmin.roomdb.AppDatabase;
+import es.unex.dcadmin.users.UsersList;
 
 
 public class CommandActivity extends AppCompatActivity implements AddCommandFragment.OnCallbackReceivedAdd, CommandDetail.OnCallbackReceivedUpdate {
@@ -240,10 +241,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
                 return true;
             case R.id.page_2:
-                /*if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-                    getSupportFragmentManager().popBackStack(getSupportFragmentManager().getBackStackEntryAt(0).getId(), getSupportFragmentManager().POP_BACK_STACK_INCLUSIVE);
-                } else {
-                    super.onBackPressed();}*/
                 AddCommandFragment fragment = new AddCommandFragment();
                 getSupportFragmentManager().beginTransaction() .replace(R.id.content_to_do_manager, fragment)
                         .addToBackStack(null)
@@ -251,7 +248,10 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
                 return true;
 
             case R.id.page_3:
-                //Código de replace de un fragment...
+                UsersList listFragment = new UsersList();
+                getSupportFragmentManager().beginTransaction() .replace(R.id.content_to_do_manager, listFragment)
+                        .addToBackStack(null)
+                        .commit();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
