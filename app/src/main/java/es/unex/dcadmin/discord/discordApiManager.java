@@ -12,7 +12,6 @@ import org.javacord.api.util.event.ListenerManager;
 import java.util.HashMap;
 
 import es.unex.dcadmin.AppExecutors;
-import es.unex.dcadmin.R;
 import es.unex.dcadmin.MainActivity;
 
 public class discordApiManager {
@@ -52,7 +51,7 @@ public class discordApiManager {
                                     MainActivity.mensaje.setText("No se ha podido iniciar sesion el Discord. ¿El token es correcto?");
                                     MainActivity.progressBar.setVisibility(View.INVISIBLE);
                                     MainActivity.access.setClickable(true);
-                                    MainActivity.layout.setClickable(true);
+                                    MainActivity.tokenEditText.setClickable(true);
                                 }
                             }
                         });
@@ -72,6 +71,10 @@ public class discordApiManager {
         discordApiManager.token = token;
     }
 
+    public static void apagar(){
+        if(api != null) api.disconnect();
+        api = null;
+    }
     public static HashMap<String, ListenerManager<MessageCreateListener>> getMapaMessageCreated() {
         return mapaMessageCreated;
     }
@@ -83,8 +86,4 @@ public class discordApiManager {
         }
     }
 
-    public static void apagar(){
-        api.disconnect();
-        api = null;
-    }
 }

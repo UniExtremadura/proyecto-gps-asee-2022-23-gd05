@@ -21,6 +21,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import java.util.List;
 
 import es.unex.dcadmin.AppExecutors;
+import es.unex.dcadmin.MainActivity;
 import es.unex.dcadmin.R;
 import es.unex.dcadmin.commandRecord.CommandRecordList;
 import es.unex.dcadmin.discord.discordApiManager;
@@ -58,7 +59,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         //Este layoutmanager es para manejar las rejillas del recyclerview
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);//Le asignamos el layoutmanager al recycler view para que así podamos ir por cada fila de las actividades creadas
-
 
         //Adapter adapta los datos del modelo a una vista, mostrará los datos Java de la forma que se hayan definido en el adapter y así se verán en el recyclerview
         mAdapter = new CommandAdapter(new CommandAdapter.OnItemClickListener() {//Cuando se clicke el elemento haga algo
@@ -134,6 +134,7 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setOnItemSelectedListener(this::onOptionsItemSelected);
 
+        //getSupportActionBar().hide();
         AppDatabase.getInstance(this);
     }
 
@@ -143,7 +144,7 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         //Esto se ejecuta cuando le hemos dado a OK a añadir una tarea
         log("Entered onActivityResult()");
 
-        if (requestCode == ADD_TODO_ITEM_REQUEST && resultCode == RESULT_OK) {//Si ha ido bien
+        if(requestCode == ADD_TODO_ITEM_REQUEST && resultCode == RESULT_OK){//Si ha ido bien
             Command toDoItem = new Command(data);//Creamos un objeto con los datos de la tarea
             mAdapter.add(toDoItem);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
         }
@@ -152,6 +153,7 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
     @Override
     public void AddCommand(String name, String trigger, String action) {//El método que llama el fragment antes de morir pasando los datos
+        // Write your logic here.
 
         //mAdapter.add(command);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
 
@@ -192,6 +194,10 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     protected void onPause() {
         super.onPause();
 
+        // Save Commands
+
+        //saveItems();
+
     }
 
     @Override
@@ -214,6 +220,9 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        /*super.onCreateOptionsMenu(menu);
+        menu.add(Menu.NONE, MENU_DELETE, Menu.NONE, "Delete all");
+        menu.add(Menu.NONE, MENU_DUMP, Menu.NONE, "Dump to log");*/
         return true;
     }
 
@@ -226,8 +235,19 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
                 editor.remove("token");
                 editor.commit();
 
+
+                Intent i = new Intent(CommandActivity.this, MainActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(i);
+
+                this.finish();
+
                 return true;
             case R.id.page_2:
+                /*if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                    getSupportFragmentManager().popBackStack(getSupportFragmentManager().getBackStackEntryAt(0).getId(), getSupportFragmentManager().POP_BACK_STACK_INCLUSIVE);
+                } else {
+                    super.onBackPressed();}*/
                 AddCommandFragment fragment = new AddCommandFragment();
                 getSupportFragmentManager().beginTransaction() .replace(R.id.content_to_do_manager, fragment)
                         .addToBackStack(null)
