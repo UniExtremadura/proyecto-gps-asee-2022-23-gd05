@@ -15,6 +15,12 @@ public interface CommandDao {
     @Query("SELECT * FROM command")
     public List<Command> getAll();
 
+    @Query("SELECT count(*) FROM command WHERE trigger_text = :trigger")
+    public int getByTrigger(String trigger);
+
+    @Query("SELECT id FROM command WHERE trigger_text = :trigger")
+    public int getIdByTrigger(String trigger);
+
     @Insert
     public long insert(Command item);
 
@@ -26,10 +32,4 @@ public interface CommandDao {
 
     @Delete
     public int delete(Command item);
-
-    @Query("SELECT count(*) FROM command WHERE trigger_text = :trigger")
-    public int getByTrigger(String trigger);
-
-    @Query("SELECT id FROM command WHERE trigger_text = :trigger")
-    public int getIdByTrigger(String trigger);
 }

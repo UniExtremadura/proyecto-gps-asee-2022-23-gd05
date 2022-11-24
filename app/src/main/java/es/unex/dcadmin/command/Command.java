@@ -1,5 +1,6 @@
 package es.unex.dcadmin.command;
 
+import android.content.Context;
 import android.content.Intent;
 
 import androidx.room.ColumnInfo;
@@ -13,6 +14,9 @@ import org.javacord.api.listener.message.MessageCreateListener;
 import org.javacord.api.util.event.ListenerManager;
 
 import java.util.HashMap;
+
+import es.unex.dcadmin.commandRecord.CommandRecord;
+import es.unex.dcadmin.roomdb.AppDatabase;
 
 
 // Do not modify
@@ -127,15 +131,27 @@ public class Command {
         this.mapMessageCreated = mapMessageCreated;
     }
 
-    public void construir(DiscordApi api, HashMap<String, ListenerManager<MessageCreateListener>> mapaMessageCreated){
+    public void construir(DiscordApi api, HashMap<String, ListenerManager<MessageCreateListener>> mapaMessageCreated, Context context){
         this.discordApi = api;
         this.mapMessageCreated = mapaMessageCreated;
         ListenerManager<MessageCreateListener> listenerManager = api.addMessageCreateListener(event -> {
-            if(event.getMessageContent().equals(trigger_text))
+            if(event.getMessageContent().equals(trigger_text) && !event.getMessageAuthor().isBotUser())
             {
                 // Definir aqui el parametro que necesitara la accion.
                 TextChannel canal = event.getChannel();
                 canal.sendMessage(action_text);
+
+                //Esto es para el historial de comandos, modificar el usuario
+                //Ahora añadimos a la BD si no estaba ya, para ello, comprobamos si estaba, si estaba, actualizamos sumando 1 en
+                CommandRecord cr = AppDatabase.getInstance(context).getCommandRecordDao().get(getName(),event.getMessageAuthor().getDisplayName());
+                if(cr != null){
+                    cr.setNumExecutions(cr.getNumExecutions()+1);
+                    AppDatabase.getInstance(context).getCommandRecordDao().update(cr);
+                }
+                else{
+                    cr = new CommandRecord(getName(),1,event.getMessageAuthor().getDisplayName());
+                    AppDatabase.getInstance(context).getCommandRecordDao().insert(cr);
+                }
 
             }
         });
@@ -144,11 +160,9 @@ public class Command {
         discordApi.addListener(mapaMessageCreated.get(trigger_text).getListener());
     }
 
-    public boolean isConstruido(){
-        if(discordApi != null)
-            return true;
+    public boolean isConstruido(){ //Es para construir los comandos al iniciar la aplicacion (Ejecutar comando), lo siguiente esta en loaditems de commandactivity(en addcomand y updatecommand), en addcommandfragment y commandDetail, ambos en el boton la parte de no añadir si existe uno con ese trigger
+        if(discordApi != null) return true;//Tambien en command activity al actualizar el comando para construirlo y en commandDetaul en para destruirlo
         else return false;
     }
-
 
 }

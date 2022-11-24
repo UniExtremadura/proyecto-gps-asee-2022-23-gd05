@@ -1,17 +1,23 @@
 package es.unex.dcadmin.discord;
 
+import android.content.Intent;
 import android.os.Build;
 import android.view.View;
 
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
+import org.javacord.api.entity.server.Server;
+import org.javacord.api.entity.user.User;
 import org.javacord.api.listener.message.MessageCreateListener;
 import org.javacord.api.util.event.ListenerManager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import es.unex.dcadmin.AppExecutors;
 import es.unex.dcadmin.MainActivity;
+import es.unex.dcadmin.users.Member;
 
 public class discordApiManager {
     private static DiscordApi api = null;
@@ -21,13 +27,14 @@ public class discordApiManager {
 
     public static DiscordApi getSingleton() {
         if (api == null) {
+            mapaMessageCreated = new HashMap<>();
             AppExecutors.getInstance().networkIO().execute(new Runnable() {
                 @Override
                 public void run() {
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         try {
-                            api = new DiscordApiBuilder().setToken(token).login().join();
+                            api = new DiscordApiBuilder().setToken(token).setAllIntents().login().join();
                         }catch(Exception ex)
                         {
                             ex.printStackTrace();
@@ -49,16 +56,30 @@ public class discordApiManager {
                                     MainActivity.mensaje.setVisibility(View.VISIBLE);
                                     MainActivity.mensaje.setText("No se ha podido iniciar sesion el Discord. ¿El token es correcto?");
                                     MainActivity.progressBar.setVisibility(View.INVISIBLE);
-                                    MainActivity.command_b.setClickable(true);
-                                    MainActivity.addTokenView.setClickable(true);
+                                    MainActivity.access.setClickable(true);
+                                    MainActivity.tokenEditText.setClickable(true);
                                 }
                             }
                         });
                     }
                 }
+
             });
         }
         return api;
+    }
+
+    public static List<Member> getUsers() {
+        List<Server> servers = new ArrayList<>(getSingleton().getServers());
+        List<Member> members = new ArrayList<>();
+
+        for(Server s: servers) {
+            for(User u: s.getMembers()) {
+                Member m = new Member(u.getId(), u.getName(), u.getAvatar().getUrl(), s.getName());
+                members.add(m);
+            }
+        }
+        return members;
     }
 
     public static String getToken() {
@@ -69,6 +90,11 @@ public class discordApiManager {
         discordApiManager.token = token;
     }
 
+    public static void apagar(){
+        if(api != null) api.disconnect();
+        api = null;
+        mapaMessageCreated = null;
+    }
     public static HashMap<String, ListenerManager<MessageCreateListener>> getMapaMessageCreated() {
         return mapaMessageCreated;
     }
@@ -80,8 +106,8 @@ public class discordApiManager {
         }
     }
 
-    public static void apagar(){
-        api.disconnect();
-        api = null;
+    public static boolean existePredeterminado()
+    {
+        return (mapaMessageCreated.get("!") != null);
     }
 }
