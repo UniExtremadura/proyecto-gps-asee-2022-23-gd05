@@ -1,29 +1,29 @@
-package es.unex.dcadmin.users;
+package es.unex.dcadmin.commandRecord;
 
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.javacord.api.DiscordApi;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import java.util.List;
 
 import es.unex.dcadmin.AppExecutors;
 import es.unex.dcadmin.R;
-import es.unex.dcadmin.discord.discordApiManager;
+import es.unex.dcadmin.roomdb.AppDatabase;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link UsersList#newInstance} factory method to
+ * Use the {@link CommandRecordList#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class UsersList extends Fragment {
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+public class CommandRecordList extends Fragment {
+
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
@@ -32,9 +32,9 @@ public class UsersList extends Fragment {
 
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
-    private UsersListAdapter mAdapter;
+    private CommandRecordAdapter mAdapter;
 
-    public UsersList() {
+    public CommandRecordList() {
         // Required empty public constructor
     }
 
@@ -46,8 +46,8 @@ public class UsersList extends Fragment {
      * @param param2 Parameter 2.
      * @return A new instance of fragment CommandRecordList.
      */
-    public static UsersList newInstance(String param1, String param2) {
-        UsersList fragment = new UsersList();
+    public static CommandRecordList newInstance(String param1, String param2) {
+        CommandRecordList fragment = new CommandRecordList();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -69,7 +69,7 @@ public class UsersList extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v =  inflater.inflate(R.layout.users_list, container, false);
+        View v =  inflater.inflate(R.layout.command_record, container, false);
 
         mRecyclerView = v.findViewById(R.id.commandRecyclerView);
 
@@ -78,33 +78,39 @@ public class UsersList extends Fragment {
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        mAdapter = new UsersListAdapter(new UsersListAdapter.OnItemClickListener() {
+        View lay = v.findViewById(R.id.content_to_do_manager);
+        lay.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemClick(Member item) {
-                UsersDetail fragment = new UsersDetail();
+            public void onClick(View view) {
+            }
+        });
 
-                Bundle bundle = new Bundle();
-                bundle.putString(UsersDetail.ARG_PARAM1, item.getName());
-                bundle.putString(UsersDetail.ARG_PARAM2, item.getServer());
-                bundle.putLong(UsersDetail.ARG_PARAM3, item.getId());
-                bundle.putString(UsersDetail.ARG_PARAM4, item.getAvatar().toString());
+        mAdapter = new CommandRecordAdapter(new CommandRecordAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(CommandRecord item) {
 
-                fragment.setArguments(bundle);
+            }
+        }, new CommandRecordAdapter.OnDeleteClickListener() {
+            @Override
+            public void onDeleteClick(CommandRecord item) {
 
-                getActivity().getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content_to_do_manager, fragment)
-                        .addToBackStack(null)
-                        .commit();
             }
         });
 
         mRecyclerView.setAdapter(mAdapter);
 
-        AppExecutors.getInstance().networkIO().execute(new Runnable() {
+        ImageView delImage = v.findViewById(R.id.deleteCommandRecord); //Borrar historial
+        delImage.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void run() {
-                List<Member> memberList = discordApiManager.getUsers();
-                getActivity().runOnUiThread(() -> mAdapter.load(memberList));
+            public void onClick(View view) {
+                AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        AppDatabase.getInstance(getActivity()).getCommandRecordDao().deleteAll();
+
+                        getActivity().runOnUiThread(() -> mAdapter.clear());
+                    }
+                });
             }
         });
 
@@ -112,6 +118,13 @@ public class UsersList extends Fragment {
     }
 
     private void loadItems() {
-
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                List<CommandRecord> items = AppDatabase.getInstance(getActivity()).getCommandRecordDao().getAll();
+                getActivity().runOnUiThread(() ->mAdapter.load(items));
+            }
+        });
     }
+
 }

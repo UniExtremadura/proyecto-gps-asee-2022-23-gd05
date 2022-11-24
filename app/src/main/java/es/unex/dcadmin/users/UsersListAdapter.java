@@ -12,7 +12,6 @@ import java.util.List;
 
 import es.unex.dcadmin.R;
 
-
 public class UsersListAdapter extends RecyclerView.Adapter<UsersListAdapter.ViewHolder> {
     private List<Member> mItems = new ArrayList<Member>();
 
@@ -29,9 +28,9 @@ public class UsersListAdapter extends RecyclerView.Adapter<UsersListAdapter.View
 
     // Create new views (invoked by the layout manager)
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public UsersListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.user_item,parent,false);
-        return new ViewHolder(v);
+        return new UsersListAdapter.ViewHolder(v);
     }
 
     // Replace the contents of a view (invoked by the layout manager)
@@ -115,4 +114,3 @@ public class UsersListAdapter extends RecyclerView.Adapter<UsersListAdapter.View
     }
 
 }
-
