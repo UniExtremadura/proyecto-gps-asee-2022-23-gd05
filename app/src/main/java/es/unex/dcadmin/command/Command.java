@@ -46,7 +46,6 @@ public class Command {
     // Create a new Command from data packaged in an Intent
     @Ignore
     public Command(Intent intent) {//Esto crea un item a partir de un intent para que sea mejor, en lugar de añadir este código en el manager, se crea aquí
-
         name = intent.getStringExtra(Command.NAME);
     }
 
@@ -136,7 +135,7 @@ public class Command {
         this.discordApi = api;
         this.mapMessageCreated = mapaMessageCreated;
         ListenerManager<MessageCreateListener> listenerManager = api.addMessageCreateListener(event -> {
-            if(event.getMessageContent().equals(trigger_text))
+            if(event.getMessageContent().equals(trigger_text) && !event.getMessageAuthor().isBotUser())
             {
                 // Definir aqui el parametro que necesitara la accion.
                 TextChannel canal = event.getChannel();

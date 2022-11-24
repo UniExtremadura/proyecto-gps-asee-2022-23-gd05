@@ -52,6 +52,8 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
         mRecyclerView = findViewById(R.id.commandRecyclerView);
 
+        // use this setting to improve performance if you know that changes
+        // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
 
         //Este layoutmanager es para manejar las rejillas del recyclerview
@@ -70,7 +72,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
                 bundle.putString(CommandDetail.ARG_PARAM1, item.getName());
                 bundle.putString(CommandDetail.ARG_PARAM3, item.getTrigger_text());
                 bundle.putString(CommandDetail.ARG_PARAM4, item.getAction_text());
-
                 //Todos los datos del comando
 
                 fragment.setArguments(bundle);
@@ -93,7 +94,10 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
                     }
                 });
             }
-        });
+        }, getApplicationContext());
+
+
+
 
         ImageView command_list = findViewById(R.id.command_record_list); //Lista de comandos
         command_list.setOnClickListener(new View.OnClickListener() {
@@ -131,7 +135,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setOnItemSelectedListener(this::onOptionsItemSelected);
 
-        //getSupportActionBar().hide();
         AppDatabase.getInstance(this);
     }
 
@@ -140,7 +143,7 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         super.onActivityResult(requestCode, resultCode, data);
         //Esto se ejecuta cuando le hemos dado a OK a añadir una tarea
         log("Entered onActivityResult()");
-
+        
         if(requestCode == ADD_TODO_ITEM_REQUEST && resultCode == RESULT_OK){//Si ha ido bien
             Command toDoItem = new Command(data);//Creamos un objeto con los datos de la tarea
             mAdapter.add(toDoItem);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
@@ -150,10 +153,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
     @Override
     public void AddCommand(String name, String trigger, String action) {//El método que llama el fragment antes de morir pasando los datos
-        // Write your logic here.
-
-        //mAdapter.add(command);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
-
         Context context = this; //Esto es para EjecutarComando, para poder obtener la BD en el listener del comando y así añadir elementos al historial
 
         AppExecutors.getInstance().diskIO().execute(new Runnable() {//Porque operaciones de DB no se pueden hacer en el hilo principal
@@ -180,8 +179,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     @Override
     public void onResume() {
         super.onResume();
-
-        // Load saved ToDoItems, if necessary
 
         if (mAdapter.getItemCount() == 0)
             loadItems();
@@ -217,9 +214,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        /*super.onCreateOptionsMenu(menu);
-        menu.add(Menu.NONE, MENU_DELETE, Menu.NONE, "Delete all");
-        menu.add(Menu.NONE, MENU_DUMP, Menu.NONE, "Dump to log");*/
         return true;
     }
 
@@ -267,7 +261,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
     }
 
-    // Load stored ToDoItems
     private void loadItems() {
 
         Context context = this; //Esto es para el de ejecutar comando
@@ -275,12 +268,23 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override
             public void run() {
+
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
                 List<Command> items = AppDatabase.getInstance(CommandActivity.this).getCommandDao().getAll();
                 for(Command c: items){
                     if(!c.isConstruido()){
                         c.construir(discordApiManager.getSingleton(),discordApiManager.getMapaMessageCreated(),context);
+
+                        if(prefs.getLong("default", -1) == c.getId())
+                        {
+                            Command def = new Command(c.getName(), "!", c.getAction_text());
+                            def.construir(discordApiManager.getSingleton(), discordApiManager.getMapaMessageCreated(), context);
+                        }
+
                     }
                 }
+
                 runOnUiThread(() ->mAdapter.load(items));
             }
         });

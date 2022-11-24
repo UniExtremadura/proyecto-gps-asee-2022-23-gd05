@@ -1,13 +1,17 @@
 package es.unex.dcadmin.command;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -26,6 +30,7 @@ import es.unex.dcadmin.roomdb.AppDatabase;
  * create an instance of this fragment.
  */
 public class CommandDetail extends Fragment {
+
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     public static final String ARG_PARAM1 = "param1";
     public static final String ARG_PARAM2 = "param2";
@@ -42,6 +47,10 @@ public class CommandDetail extends Fragment {
     private EditText mActionText;
 
     private Command command;
+
+    private Context applicationContext;
+    private CheckBox setAsDefaultCheckbox;
+    private boolean isDefaultCommand;
 
     OnCallbackReceivedUpdate mCallback; //Un objeto para que desde el fragment podamos llamar a un método de la activity (para guardar los datos)
 
@@ -95,14 +104,13 @@ public class CommandDetail extends Fragment {
         mTitleText = (EditText) v.findViewById(R.id.command_name);
 
         mTriggerText = (EditText) v.findViewById(R.id.command_trigger);
-
         mActionText = (EditText) v.findViewById(R.id.command_action);
 
         mTitleText.setText(command.getName());
-
         mTriggerText.setText(command.getTrigger_text());
-
         mActionText.setText(command.getAction_text());
+
+        setAsDefaultCheckbox = (CheckBox) v.findViewById(R.id.setAsDefault);
 
         View lay = v.findViewById(R.id.detailScreen);
         lay.setOnClickListener(new View.OnClickListener() {
@@ -120,6 +128,13 @@ public class CommandDetail extends Fragment {
 
         //Ejecutar Comando
         String previous_trigger_text = command.getTrigger_text();
+
+        ///////////////////////////////////////////////////////////////////////////////
+        this.applicationContext = getActivity().getApplicationContext();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+        isDefaultCommand = prefs.getLong("default", -1) == command.getId();
+        setAsDefaultCheckbox.setChecked(isDefaultCommand);
+        /////////////////////////////////////////////////////////////////////////////
 
         ImageView imageView = v.findViewById(R.id.saveView);
         imageView.setOnClickListener(new View.OnClickListener() {
@@ -143,8 +158,39 @@ public class CommandDetail extends Fragment {
                             //Ejecutar comando
                             discordApiManager.destruir(previous_trigger_text);
 
+
+
                             //Esta linea y el getActivityonbackpressed son para el CU AñadirComando
+                            // Tambien construye el comando
                             mCallback.UpdateCommand(command); //Los manda a la activity
+
+
+                            ///////////////////////////////////////////////////////////////////////
+                            SharedPreferences.Editor editor = prefs.edit();
+
+                            if(setAsDefaultCheckbox.isChecked())
+                            {
+
+                                // Destruir el posible comando por defecto
+                                discordApiManager.destruir("!");
+
+                                // Mostrar como predeterminado
+                                editor.putLong("default", command.getId());
+                                editor.commit();
+
+                                Command def = new Command(command.getName(),"!",command.getAction_text());
+                                def.construir(discordApiManager.getSingleton(), discordApiManager.getMapaMessageCreated(), applicationContext );
+                            }
+                            else if(setAsDefaultCheckbox.isChecked() == false && isDefaultCommand)
+                            {
+                                // Destruir el posible comando por defecto
+                                discordApiManager.destruir("!");
+
+                                // Eliminar de predeterminado
+                                editor.remove("default");
+                                editor.commit();
+                            }
+                            //////////////////////////////////////////////////////////////////////////
 
 
                             getActivity().runOnUiThread(new Runnable() {

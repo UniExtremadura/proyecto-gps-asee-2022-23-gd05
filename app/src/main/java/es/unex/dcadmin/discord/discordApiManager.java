@@ -27,6 +27,7 @@ public class discordApiManager {
 
     public static DiscordApi getSingleton() {
         if (api == null) {
+            mapaMessageCreated = new HashMap<>();
             AppExecutors.getInstance().networkIO().execute(new Runnable() {
                 @Override
                 public void run() {
@@ -92,6 +93,7 @@ public class discordApiManager {
     public static void apagar(){
         if(api != null) api.disconnect();
         api = null;
+        mapaMessageCreated = null;
     }
     public static HashMap<String, ListenerManager<MessageCreateListener>> getMapaMessageCreated() {
         return mapaMessageCreated;
@@ -104,4 +106,8 @@ public class discordApiManager {
         }
     }
 
+    public static boolean existePredeterminado()
+    {
+        return (mapaMessageCreated.get("!") != null);
+    }
 }

@@ -2,6 +2,8 @@ package es.unex.dcadmin.command;
 
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,12 +17,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import es.unex.dcadmin.MainActivity;
 import es.unex.dcadmin.R;
 import es.unex.dcadmin.discord.discordApiManager;
 
-
 public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHolder> {
     private List<Command> mItems = new ArrayList<Command>();
+    private Context applicationContext;
 
     public interface OnItemClickListener {
         void onItemClick(Command item);     //Type of the element to be returned
@@ -34,10 +37,11 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
     private final OnDeleteClickListener deleteListener; //Listener para borrar
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public CommandAdapter(OnItemClickListener listener, OnDeleteClickListener deleteListener) {//El segundo parametro es para el listener de borrar
+    public CommandAdapter(OnItemClickListener listener, OnDeleteClickListener deleteListener, Context applicationContext) {//El segundo parametro es para el listener de borrar
 
         this.listener = listener;
         this.deleteListener = deleteListener; //Listener de borrar
+        this.applicationContext = applicationContext;
     }
 
     // Create new views (invoked by the layout manager)
@@ -47,7 +51,7 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
         //A partir de un layout, le metemos los datos a la vista(lo mismo que hacíamos con los fragments, crear una vista)
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.command_item,parent,false);//LayoutInflater solo se puede crear con from. Esto mete los datos en el layout todo_item
 
-        return new ViewHolder(v);
+        return new ViewHolder(v, applicationContext);
     }
 
     // Replace the contents of a view (invoked by the layout manager)
@@ -75,8 +79,15 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
             discordApiManager.destruir(c.getTrigger_text());
         }
 
-        mItems.clear();
+        discordApiManager.destruir("!");
 
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove("default");
+        editor.commit();
+
+
+        mItems.clear();
         notifyDataSetChanged();
 
     }
@@ -91,6 +102,7 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
 
         mItems.clear();
         mItems = items;
+
         notifyDataSetChanged();
 
     }
@@ -116,6 +128,17 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
         int pos = mItems.indexOf(item);
         mItems.remove(item);
         discordApiManager.destruir(item.getTrigger_text());//De ejecutar comando
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        if(prefs.getLong("default", -1) == item.getId())
+        {
+            discordApiManager.destruir("!");
+            editor.remove("default");
+            editor.commit();
+        }
+
         notifyItemRemoved(pos);
         notifyItemRangeChanged(pos,mItems.size());
 
@@ -124,20 +147,29 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
     static class ViewHolder extends RecyclerView.ViewHolder {
 
         private TextView name;
-        private ImageView deleteButton;
+        private ImageView deleteButton, isDefaultIcon;
 
-        public ViewHolder(View itemView) {//itemVIew es la vista que contiene a todos los elementos
+        private Context applicationContext;
+
+        public ViewHolder(View itemView, Context applicationContext) {//itemVIew es la vista que contiene a todos los elementos
             super(itemView);
 
             name = itemView.findViewById(R.id.commandName);
             deleteButton = itemView.findViewById(R.id.deleteCommand);
+            isDefaultIcon = itemView.findViewById(R.id.isDefaultIcon);
+
+            this.applicationContext = applicationContext;
 
         }
 
-        public void bind(final Command toDoItem, final OnItemClickListener listener, final OnDeleteClickListener deleteListener) { //Este ultimo parametro es para el listener de borrar
+        public void bind(final Command toDoItem, final OnItemClickListener listener, final OnDeleteClickListener deleteListener) {
             //Vamos a vincular las vistas con los datos de toDoItem
             name.setText(toDoItem.getName());
 
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+            long defaultCommandId = prefs.getLong("default", -1);
+
+            isDefaultIcon.setVisibility(toDoItem.getId() == defaultCommandId ? View.VISIBLE : View.GONE);
             deleteButton.setOnClickListener(new View.OnClickListener() { //Listener de borrar
                 @Override
                 public void onClick(View v) {
