@@ -148,7 +148,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
             Command toDoItem = new Command(data);//Creamos un objeto con los datos de la tarea
             mAdapter.add(toDoItem);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
         }
-
     }
 
     @Override

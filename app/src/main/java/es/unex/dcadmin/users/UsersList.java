@@ -81,7 +81,20 @@ public class UsersList extends Fragment {
         mAdapter = new UsersListAdapter(new UsersListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Member item) {
+                UsersDetail fragment = new UsersDetail();
 
+                Bundle bundle = new Bundle();
+                bundle.putString(UsersDetail.ARG_PARAM1, item.getName());
+                bundle.putString(UsersDetail.ARG_PARAM2, item.getServer());
+                bundle.putLong(UsersDetail.ARG_PARAM3, item.getId());
+                bundle.putString(UsersDetail.ARG_PARAM4, item.getAvatar().toString());
+
+                fragment.setArguments(bundle);
+
+                getActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_to_do_manager, fragment)
+                        .addToBackStack(null)
+                        .commit();
             }
         });
 
