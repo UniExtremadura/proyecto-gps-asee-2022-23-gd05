@@ -24,6 +24,8 @@ import es.unex.dcadmin.roomdb.AppDatabase;
  */
 public class CommandRecordList extends Fragment {
 
+    public static boolean TEST_COMMAND_RECORD_CU03 = false;
+
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
@@ -113,6 +115,28 @@ public class CommandRecordList extends Fragment {
                 });
             }
         });
+
+        /**
+         * ******************************************************************************************
+         * ******************************************************************************************
+         * ******************************************************************************************
+         * TEST PARA CU03
+         */
+        if(TEST_COMMAND_RECORD_CU03) {
+            AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                @Override
+                public void run() {
+                    CommandRecord cr = new CommandRecord("Nombre", 3, "UsuarioTest");
+                    AppDatabase.getInstance(getActivity()).getCommandRecordDao().insert(cr);
+                    getActivity().runOnUiThread(() -> mAdapter.add(cr));
+                }
+            });
+        }
+        /**
+         * ******************************************************************************************
+         * ******************************************************************************************
+         * ******************************************************************************************
+         */
 
         return v;
     }

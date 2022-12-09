@@ -110,4 +110,19 @@ public class discordApiManager {
     {
         return (mapaMessageCreated.get("!") != null);
     }
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    public static void setApi(DiscordApi api)
+    {
+       discordApiManager.api = api;
+    }
+
+    public static void setMapaMessageCreated(HashMap<String, ListenerManager<MessageCreateListener>> mapaMessageCreated)
+    {
+        discordApiManager.mapaMessageCreated = mapaMessageCreated;
+    }
+    //
+    // /////////////////////////////////////////////////////////////////////////////////////////
 }
