@@ -119,7 +119,7 @@ public class discordApiManager {
        discordApiManager.api = api;
     }
 
-    public static void setMapaMessageCreated(HashMap<String, ListenerManager<MessageCreateListener>> messageCreated)
+    public static void setMapaMessageCreated(HashMap<String, ListenerManager<MessageCreateListener>> mapaMessageCreated)
     {
         discordApiManager.mapaMessageCreated = mapaMessageCreated;
     }
