@@ -3,15 +3,15 @@
   <component name="AndroidTestResultsUserPreferences">
     <option name="androidTestResultsTableState">
       <map>
-        <entry key="-2143193800">
+        <entry key="-2143197644">
           <value>
             <AndroidTestResultsTableState>
               <option name="preferredColumnWidths">
                 <map>
-                  <entry key="08fe67a90705" value="120" />
                   <entry key="Duration" value="90" />
                   <entry key="Tests" value="360" />
-                  <entry key="Xiaomi&#10; Mi A2 Lite" value="120" />
+                  <entry key="ZX5TYHIJPBVSSKG6" value="120" />
+                  <entry key="realme&#10; RMX2155" value="120" />
                 </map>
               </option>
             </AndroidTestResultsTableState>
