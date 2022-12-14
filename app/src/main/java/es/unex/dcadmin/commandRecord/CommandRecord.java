@@ -17,7 +17,7 @@ public class CommandRecord {
     @Ignore
     public final static String USERID = "userId";
     @ColumnInfo(name = "name")
-    private String name = new String();
+    private String name;
     @PrimaryKey(autoGenerate = true)
     private long id;
     @ColumnInfo(name = "numExecutions")
