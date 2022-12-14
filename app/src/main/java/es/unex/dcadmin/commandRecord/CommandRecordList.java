@@ -29,7 +29,6 @@ public class CommandRecordList extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    private String mParam1;
     private String mParam2;
 
     private RecyclerView mRecyclerView;
@@ -61,7 +60,6 @@ public class CommandRecordList extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
         loadItems(); //Para cargar los datos
