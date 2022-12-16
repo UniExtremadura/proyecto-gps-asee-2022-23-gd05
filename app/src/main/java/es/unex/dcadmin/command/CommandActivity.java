@@ -251,15 +251,6 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         }
     }
 
-    private void dump() {
-
-        for (int i = 0; i < mAdapter.getItemCount(); i++) {
-            String data = ((Command) mAdapter.getItem(i)).toLog();
-            log("Item " + i);
-        }
-
-    }
-
     private void loadItems() {
 
         Context context = this; //Esto es para el de ejecutar comando

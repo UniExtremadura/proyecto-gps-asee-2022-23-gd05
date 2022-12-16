@@ -48,14 +48,14 @@ public class discordApiManager {
                                 if(api != null) {
                                     MainActivity.mensaje.setText("Pulsa en cualquier lugar para continuar");
                                     MainActivity.mensaje.setVisibility(View.VISIBLE);
-                                    MainActivity.progressBar.setVisibility(View.INVISIBLE);
+                                    MainActivity.getProgressBar().setVisibility(View.INVISIBLE);
                                     MainActivity.layout.setOnClickListener(MainActivity.listener);
                                 }
                                 else
                                 {
                                     MainActivity.mensaje.setVisibility(View.VISIBLE);
                                     MainActivity.mensaje.setText("No se ha podido iniciar sesion el Discord. ¿El token es correcto?");
-                                    MainActivity.progressBar.setVisibility(View.INVISIBLE);
+                                    MainActivity.getProgressBar().setVisibility(View.INVISIBLE);
                                     MainActivity.access.setClickable(true);
                                     MainActivity.tokenEditText.setClickable(true);
                                 }

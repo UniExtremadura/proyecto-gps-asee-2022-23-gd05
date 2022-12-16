@@ -17,7 +17,11 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences prefs;
     String token;
     public static TextView mensaje;
-    public static ProgressBar progressBar;
+    private static ProgressBar progressBar;
+
+    public static ProgressBar getProgressBar() { return progressBar; }
+    private static void setProgressBar(ProgressBar pb) { progressBar = pb; }
+
     public static View.OnClickListener listener;
     public static View layout;
 
