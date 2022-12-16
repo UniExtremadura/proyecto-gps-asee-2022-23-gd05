@@ -43,11 +43,7 @@ public class CU09 {
     @Test
     public void cU09() {
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        onView(isRoot()).perform(waitFor(500));
 
         ViewInteraction appCompatEditText = onView(
                 allOf(withId(R.id.addTokenView),
