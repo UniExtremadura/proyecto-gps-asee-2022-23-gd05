@@ -33,9 +33,12 @@ public class CommandRecordAdapter extends RecyclerView.Adapter<CommandRecordAdap
         this.deleteListener = deleteListener; //Listener de borrar
     }
 
+    // Create new views (invoked by the layout manager)
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.command_record_item,parent,false);
+    public ViewHolder onCreateViewHolder(ViewGroup parent,//Parent es la vista padre de este elemento, en este caso la recyclerview, es el que contiene este elemento
+                                                                              int viewType) {
+        //A partir de un layout, le metemos los datos a la vista(lo mismo que hacíamos con los fragments, crear una vista)
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.command_record_item,parent,false);//LayoutInflater solo se puede crear con from. Esto mete los datos en el layout todo_item
 
         return new ViewHolder(v);
     }
@@ -104,6 +107,12 @@ public class CommandRecordAdapter extends RecyclerView.Adapter<CommandRecordAdap
         notifyItemRemoved(pos);
         notifyItemRangeChanged(pos,mItems.size());
 
+    }
+
+    public void swap(List<CommandRecord> commandRecords){
+        mItems = commandRecords;
+
+        notifyDataSetChanged();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

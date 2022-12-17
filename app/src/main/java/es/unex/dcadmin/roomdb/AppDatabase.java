@@ -9,8 +9,9 @@ import androidx.room.RoomDatabase;
 
 import es.unex.dcadmin.commandRecord.CommandRecord;
 import es.unex.dcadmin.command.Command;
+import es.unex.dcadmin.users.Member;
 
-@Database(entities = {Command.class, CommandRecord.class}, version = 1)
+@Database(entities = {Command.class, CommandRecord.class, Member.class}, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase instance;
 
@@ -21,10 +22,7 @@ public abstract class AppDatabase extends RoomDatabase {
         return instance;
     }
 
-    public static void closeInstance(){
-        instance = null;
-    }
-
     public abstract CommandDao getCommandDao();
     public abstract CommandRecordDao getCommandRecordDao();
+    public abstract MemberDao getMemberDao();
 }

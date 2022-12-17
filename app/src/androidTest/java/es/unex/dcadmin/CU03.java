@@ -4,21 +4,16 @@ import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.Espresso.pressBack;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
-import static androidx.test.espresso.action.ViewActions.longClick;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.assertThat;
-import static androidx.test.espresso.matcher.ViewMatchers.hasChildCount;
 import static androidx.test.espresso.matcher.ViewMatchers.hasSibling;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withContentDescription;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static androidx.test.espresso.matcher.ViewMatchers.withParent;
-import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
 
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +33,6 @@ import androidx.test.filters.LargeTest;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.javacord.api.DiscordApi;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -101,7 +95,6 @@ public class CU03 {
             e.printStackTrace();
         }
 
-        CommandRecordList.TEST_COMMAND_RECORD_CU03 = true;
         ViewInteraction appCompatEditText = onView(
                 allOf(withId(R.id.addTokenView),
                         childAtPosition(
@@ -160,9 +153,8 @@ public class CU03 {
                                 4),
                         isDisplayed()));
         appCompatImageView2.perform(click());
-
+        appCompatImageView2.check(matches(isDisplayed()));
         onView(isRoot()).perform(waitFor(2000));
-        onView( allOf(withId(R.id.commandRecyclerView),hasSibling(withId(R.id.title_command_record)))).check(new RecyclerViewItemCountAssertion(0));
 
         pressBack();
 
@@ -176,7 +168,6 @@ public class CU03 {
                         isDisplayed()));
         bottomNavigationItemView.perform(click());
 
-        CommandRecordList.TEST_COMMAND_RECORD_CU03 = false;
     }
 
     private static Matcher<View> childAtPosition(

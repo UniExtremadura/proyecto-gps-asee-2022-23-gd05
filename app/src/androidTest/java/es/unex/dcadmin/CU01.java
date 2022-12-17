@@ -35,7 +35,7 @@ import org.junit.runner.RunWith;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class Test01 {
+public class CU01 {
 
     /***********************************/
     public static ViewAction waitFor(long delay) {
@@ -114,7 +114,7 @@ public class Test01 {
 
         onView(isRoot()).perform(waitFor(5000));
         onView(withId(R.id.infoMessage)).check(matches(isDisplayed()));
-        onView(withId(R.id.infoMessage)).check(matches(withText("No se ha podido iniciar sesion el Discord. ¿El token es correcto?")));
+        onView(withId(R.id.infoMessage)).check(matches(withText("No se ha podido iniciar sesion en Discord. ¿El token es correcto?")));
 
 
         ViewInteraction appCompatEditText4 = onView(

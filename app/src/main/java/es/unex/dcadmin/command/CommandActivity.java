@@ -1,15 +1,14 @@
 package es.unex.dcadmin.command;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.content.Context;
@@ -20,13 +19,17 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.List;
 
+import es.unex.dcadmin.AppContainer;
 import es.unex.dcadmin.AppExecutors;
 import es.unex.dcadmin.MainActivity;
+import es.unex.dcadmin.DCAdmin;
 import es.unex.dcadmin.R;
 import es.unex.dcadmin.commandRecord.CommandRecordList;
 import es.unex.dcadmin.discord.discordApiManager;
 import es.unex.dcadmin.roomdb.AppDatabase;
 import es.unex.dcadmin.users.UsersList;
+import es.unex.dcadmin.viewModels.CommandViewModel;
+import es.unex.dcadmin.viewModels.MasterDetailCommandViewModel;
 
 
 public class CommandActivity extends AppCompatActivity implements AddCommandFragment.OnCallbackReceivedAdd, CommandDetail.OnCallbackReceivedUpdate {
@@ -44,11 +47,20 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private CommandAdapter mAdapter;
+    private CommandViewModel mViewModel;
+    private MasterDetailCommandViewModel sharedViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_command);
+
+        AppContainer appContainer = ((DCAdmin) getApplication()).appContainer;
+        mViewModel = new ViewModelProvider(this, (ViewModelProvider.Factory) appContainer.mFactory).get(CommandViewModel.class);
+
+        sharedViewModel = new ViewModelProvider(this, (ViewModelProvider.Factory) appContainer.mFactory).get(MasterDetailCommandViewModel.class);
+
+        mViewModel.getCommands().observe(this, this::onCommandsLoaded);
 
         mRecyclerView = findViewById(R.id.commandRecyclerView);
 
@@ -67,14 +79,16 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
 
                 CommandDetail fragment = new CommandDetail();
 
-                Bundle bundle = new Bundle();
+                /*Bundle bundle = new Bundle();
                 bundle.putLong(CommandDetail.ARG_PARAM2, item.getId());
                 bundle.putString(CommandDetail.ARG_PARAM1, item.getName());
                 bundle.putString(CommandDetail.ARG_PARAM3, item.getTrigger_text());
                 bundle.putString(CommandDetail.ARG_PARAM4, item.getAction_text());
                 //Todos los datos del comando
 
-                fragment.setArguments(bundle);
+                fragment.setArguments(bundle);*/
+
+                sharedViewModel.select(item);
 
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_to_do_manager, fragment)
@@ -85,14 +99,8 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         }, new CommandAdapter.OnDeleteClickListener() { //Esto es para el listener de borrar
             @Override
             public void onDeleteClick(Command item) {
-                AppExecutors.getInstance().diskIO().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        AppDatabase.getInstance(CommandActivity.this).getCommandDao().delete(item);
-
-                        runOnUiThread(() -> mAdapter.delete(item));
-                    }
-                });
+                mViewModel.deleteCommand(item);
+                runOnUiThread(() -> mAdapter.delete(item));
             }
         }, getApplicationContext());
 
@@ -119,14 +127,8 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                AppExecutors.getInstance().diskIO().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        AppDatabase.getInstance(CommandActivity.this).getCommandDao().deleteAll();
-
-                        runOnUiThread(() -> mAdapter.clear());
-                    }
-                });
+                runOnUiThread(() -> mAdapter.clear());
+                mViewModel.deleteCommands();
             }
         });
 
@@ -139,71 +141,34 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {//Este método no hace nada ya
-        super.onActivityResult(requestCode, resultCode, data);
-        //Esto se ejecuta cuando le hemos dado a OK a añadir una tarea
-        log("Entered onActivityResult()");
-        
-        if(requestCode == ADD_TODO_ITEM_REQUEST && resultCode == RESULT_OK){//Si ha ido bien
-            Command toDoItem = new Command(data);//Creamos un objeto con los datos de la tarea
-            mAdapter.add(toDoItem);//Añadimos el item al adapter, así se podrá guardar en el recyclerview y podrá ver
-        }
-    }
-
-    @Override
     public void AddCommand(String name, String trigger, String action) {//El método que llama el fragment antes de morir pasando los datos
         Context context = this; //Esto es para EjecutarComando, para poder obtener la BD en el listener del comando y así añadir elementos al historial
 
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {//Porque operaciones de DB no se pueden hacer en el hilo principal
+        Command command = new Command(name, trigger, action);//Creamos un objeto con los datos de la tarea
+
+        command.setId(mViewModel.insertCommand(command));
+
+        AppExecutors.getInstance().networkIO().execute(new Runnable() {//Porque operaciones de DB no se pueden hacer en el hilo principal
             @Override
             public void run() {
-                Command command = new Command(name, trigger, action);//Creamos un objeto con los datos de la tarea
-                AppDatabase db = AppDatabase.getInstance(CommandActivity.this);
-                long id = db.getCommandDao().insert(command);
-                //update item ID
-                command.setId(id);
-                //insert into adapter list
-
-                //No se puede actualizar la vista fuera del hilo principal por eso hacemos esto, gracias a que estamos en una activity
-                runOnUiThread(() -> mAdapter.add(command));
-
                 //Ejecutar comando (la destruccion está en el adapter en delete y clear)
-                command.construir(discordApiManager.getSingleton(),discordApiManager.getMapaMessageCreated(), context);
+                command.construir(discordApiManager.getSingleton().getApi(null),discordApiManager.getSingleton().getMapaMessageCreated(), context);
             }
         });
 
-    }
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if (mAdapter.getItemCount() == 0)
-            loadItems();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        // Save Commands
-
-        //saveItems();
+        runOnUiThread(() -> mAdapter.add(command));
 
     }
 
     @Override
     protected void onDestroy(){
-        AppDatabase.getInstance(this).close();
-        AppDatabase.closeInstance();
 
         //Para poder cerrar la conexion con la api (Ejecutar comando)
         AppExecutors.getInstance().networkIO().execute(new Runnable() {
             @Override
             public void run() {
 
-                discordApiManager.apagar();
+                discordApiManager.getSingleton().apagar();
 
             }
         });
@@ -251,58 +216,44 @@ public class CommandActivity extends AppCompatActivity implements AddCommandFrag
         }
     }
 
-    private void loadItems() {
-
-        Context context = this; //Esto es para el de ejecutar comando
-
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-
-                List<Command> items = AppDatabase.getInstance(CommandActivity.this).getCommandDao().getAll();
-                for(Command c: items){
-                    if(!c.isConstruido()){
-                        c.construir(discordApiManager.getSingleton(),discordApiManager.getMapaMessageCreated(),context);
-
-                        if(prefs.getLong("default", -1) == c.getId())
-                        {
-                            Command def = new Command(c.getName(), "!", c.getAction_text());
-                            def.construir(discordApiManager.getSingleton(), discordApiManager.getMapaMessageCreated(), context);
-                        }
-
-                    }
-                }
-
-                runOnUiThread(() ->mAdapter.load(items));
-            }
-        });
-    }
-
     @Override
     public void UpdateCommand(Command command){
         Context context = this;//Esto es para EjecutarComando
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+        mViewModel.updateCommand(command);
+        AppExecutors.getInstance().networkIO().execute(new Runnable() {
             @Override
             public void run() {
-                AppDatabase db = AppDatabase.getInstance(CommandActivity.this);
-                db.getCommandDao().update(command);
-
-                command.construir(discordApiManager.getSingleton(),discordApiManager.getMapaMessageCreated(), context);
-                runOnUiThread(() -> mAdapter.update(command));
-
-                //Ejecutar comando. Esto es para que se actualice el trigger y la accion al modificar
+                command.construir(discordApiManager.getSingleton().getApi(null),discordApiManager.getSingleton().getMapaMessageCreated(), context);
             }
         });
+        runOnUiThread(() -> mAdapter.update(command));
     }
 
-    private void log(String msg) {
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    private void onCommandsLoaded(List<Command> commands){
+        runOnUiThread(() -> mAdapter.swap(commands));
+        loadBotCommands(commands);
+    }
+
+    public void loadBotCommands(List<Command> items){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        Context context = this;
+        if(items != null) {
+            AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                @Override
+                public void run() {
+                    for (Command c : items) {
+                        if (!c.isConstruido()) {
+                            c.construir(discordApiManager.getSingleton().getApi(null), discordApiManager.getSingleton().getMapaMessageCreated(), context);
+
+                            if (prefs.getLong("default", -1) == c.getId()) {
+                                Command def = new Command(c.getName(), "!", c.getAction_text());
+                                def.construir(discordApiManager.getSingleton().getApi(null), discordApiManager.getSingleton().getMapaMessageCreated(), context);
+                            }
+
+                        }
+                    }
+                }
+            });
         }
-        Log.i(TAG, msg);
     }
 }

@@ -1,5 +1,6 @@
 package es.unex.dcadmin.roomdb;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -13,7 +14,7 @@ import es.unex.dcadmin.commandRecord.CommandRecord;
 @Dao
 public interface CommandRecordDao {
     @Query("SELECT * FROM commandRecord")
-    public List<CommandRecord> getAll();
+    public LiveData<List<CommandRecord>> getAll();
 
     @Query("SELECT * FROM commandRecord WHERE name = :commandName and userId = :commandUserId")
     public CommandRecord get(String commandName, String commandUserId);

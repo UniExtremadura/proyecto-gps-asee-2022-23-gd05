@@ -89,6 +89,11 @@ public class UsersListAdapter extends RecyclerView.Adapter<UsersListAdapter.View
         notifyItemRangeChanged(pos,mItems.size());
     }
 
+    public void swap(List<Member> members){
+        mItems = members;
+        notifyDataSetChanged();
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         private TextView name;
         private TextView server;

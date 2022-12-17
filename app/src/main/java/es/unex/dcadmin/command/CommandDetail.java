@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -14,14 +16,16 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import es.unex.dcadmin.AppContainer;
 import es.unex.dcadmin.AppExecutors;
+import es.unex.dcadmin.DCAdmin;
 import es.unex.dcadmin.R;
 import es.unex.dcadmin.discord.discordApiManager;
 import es.unex.dcadmin.roomdb.AppDatabase;
+import es.unex.dcadmin.viewModels.MasterDetailCommandViewModel;
 
 
 /**
@@ -51,6 +55,8 @@ public class CommandDetail extends Fragment {
     private Context applicationContext;
     private CheckBox setAsDefaultCheckbox;
     private boolean isDefaultCommand;
+
+    private MasterDetailCommandViewModel sharedViewModel;
 
     OnCallbackReceivedUpdate mCallback; //Un objeto para que desde el fragment podamos llamar a un método de la activity (para guardar los datos)
 
@@ -85,15 +91,13 @@ public class CommandDetail extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         Bundle bundle = this.getArguments();
         if (bundle != null) {
-            command = new Command(bundle.getLong(ARG_PARAM2),bundle.getString(ARG_PARAM1), bundle.getString(ARG_PARAM3), bundle.getString(ARG_PARAM4));
         }
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-            mParam3 = getArguments().getString(ARG_PARAM3);
-            mParam4 = getArguments().getString(ARG_PARAM4);
         }
+        AppContainer appContainer = ((DCAdmin) getActivity().getApplication()).appContainer;
+        sharedViewModel = new ViewModelProvider(this, (ViewModelProvider.Factory) appContainer.mFactory).get(MasterDetailCommandViewModel.class);
+        command = sharedViewModel.getSelected().getValue();
     }
 
     @Override
@@ -101,16 +105,26 @@ public class CommandDetail extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.command_detail, container, false);
-        mTitleText = (EditText) v.findViewById(R.id.command_name);
 
-        mTriggerText = (EditText) v.findViewById(R.id.command_trigger);
-        mActionText = (EditText) v.findViewById(R.id.command_action);
+        sharedViewModel.getSelected().observe(getViewLifecycleOwner(), command1 -> {
+            if(command1 != null) {
+                command = command1;
 
-        mTitleText.setText(command.getName());
-        mTriggerText.setText(command.getTrigger_text());
-        mActionText.setText(command.getAction_text());
+                mTitleText = (EditText) v.findViewById(R.id.command_name);
+
+                mTriggerText = (EditText) v.findViewById(R.id.command_trigger);
+                mActionText = (EditText) v.findViewById(R.id.command_action);
+
+                mTitleText.setText(command.getName());
+                mTriggerText.setText(command.getTrigger_text());
+                mActionText.setText(command.getAction_text());
+            }
+        });
+
+
 
         setAsDefaultCheckbox = (CheckBox) v.findViewById(R.id.setAsDefault);
+
 
         View lay = v.findViewById(R.id.detailScreen);
         lay.setOnClickListener(new View.OnClickListener() {
@@ -156,7 +170,7 @@ public class CommandDetail extends Fragment {
 
 
                             //Ejecutar comando
-                            discordApiManager.destruir(previous_trigger_text);
+                            discordApiManager.getSingleton().destruir(previous_trigger_text);
 
 
 
@@ -172,19 +186,19 @@ public class CommandDetail extends Fragment {
                             {
 
                                 // Destruir el posible comando por defecto
-                                discordApiManager.destruir("!");
+                                discordApiManager.getSingleton().destruir("!");
 
                                 // Mostrar como predeterminado
                                 editor.putLong("default", command.getId());
                                 editor.commit();
 
                                 Command def = new Command(command.getName(),"!",command.getAction_text());
-                                def.construir(discordApiManager.getSingleton(), discordApiManager.getMapaMessageCreated(), applicationContext );
+                                def.construir(discordApiManager.getSingleton().getApi(null), discordApiManager.getSingleton().getMapaMessageCreated(), applicationContext );
                             }
                             else if(setAsDefaultCheckbox.isChecked() == false && isDefaultCommand)
                             {
                                 // Destruir el posible comando por defecto
-                                discordApiManager.destruir("!");
+                                discordApiManager.getSingleton().destruir("!");
 
                                 // Eliminar de predeterminado
                                 editor.remove("default");

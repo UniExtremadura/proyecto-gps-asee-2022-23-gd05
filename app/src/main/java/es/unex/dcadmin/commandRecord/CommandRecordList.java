@@ -3,6 +3,7 @@ package es.unex.dcadmin.commandRecord;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -13,9 +14,11 @@ import android.widget.ImageView;
 
 import java.util.List;
 
+import es.unex.dcadmin.AppContainer;
 import es.unex.dcadmin.AppExecutors;
+import es.unex.dcadmin.DCAdmin;
 import es.unex.dcadmin.R;
-import es.unex.dcadmin.roomdb.AppDatabase;
+import es.unex.dcadmin.viewModels.CommandRecordViewModel;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -24,16 +27,16 @@ import es.unex.dcadmin.roomdb.AppDatabase;
  */
 public class CommandRecordList extends Fragment {
 
-    public static boolean TEST_COMMAND_RECORD_CU03 = false;
-
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
+    private String mParam1;
     private String mParam2;
 
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private CommandRecordAdapter mAdapter;
+    private CommandRecordViewModel mViewModel;
 
     public CommandRecordList() {
         // Required empty public constructor
@@ -60,9 +63,9 @@ public class CommandRecordList extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
+            mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-        loadItems(); //Para cargar los datos
     }
 
     @Override
@@ -72,6 +75,9 @@ public class CommandRecordList extends Fragment {
         View v =  inflater.inflate(R.layout.command_record, container, false);
 
         mRecyclerView = v.findViewById(R.id.commandRecyclerView);
+
+        AppContainer appContainer = ((DCAdmin) getActivity().getApplication()).appContainer;
+        mViewModel = new ViewModelProvider(this, (ViewModelProvider.Factory) appContainer.mFactory).get(CommandRecordViewModel.class);
 
         mRecyclerView.setHasFixedSize(true);
 
@@ -106,7 +112,7 @@ public class CommandRecordList extends Fragment {
                 AppExecutors.getInstance().diskIO().execute(new Runnable() {
                     @Override
                     public void run() {
-                        AppDatabase.getInstance(getActivity()).getCommandRecordDao().deleteAll();
+                        mViewModel.deleteCommandRecords();
 
                         getActivity().runOnUiThread(() -> mAdapter.clear());
                     }
@@ -114,39 +120,15 @@ public class CommandRecordList extends Fragment {
             }
         });
 
-        /**
-         * ******************************************************************************************
-         * ******************************************************************************************
-         * ******************************************************************************************
-         * TEST PARA CU03
-         */
-        if(TEST_COMMAND_RECORD_CU03) {
-            AppExecutors.getInstance().diskIO().execute(new Runnable() {
-                @Override
-                public void run() {
-                    CommandRecord cr = new CommandRecord("Nombre", 3, "UsuarioTest");
-                    AppDatabase.getInstance(getActivity()).getCommandRecordDao().insert(cr);
-                    getActivity().runOnUiThread(() -> mAdapter.add(cr));
-                }
-            });
-        }
-        /**
-         * ******************************************************************************************
-         * ******************************************************************************************
-         * ******************************************************************************************
-         */
+        mViewModel.getCommandRecords().observe(getViewLifecycleOwner(), this::onCommandRecordsLoaded);
 
         return v;
     }
 
-    private void loadItems() {
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                List<CommandRecord> items = AppDatabase.getInstance(getActivity()).getCommandRecordDao().getAll();
-                getActivity().runOnUiThread(() ->mAdapter.load(items));
-            }
-        });
+    private void onCommandRecordsLoaded(List<CommandRecord> commandRecords) {
+
+        getActivity().runOnUiThread(() -> mAdapter.swap(commandRecords));
+
     }
 
 }

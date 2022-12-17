@@ -13,20 +13,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import es.unex.dcadmin.command.CommandActivity;
 import es.unex.dcadmin.discord.discordApiManager;
 
-public class MainActivity extends AppCompatActivity {
-    SharedPreferences prefs;
-    String token;
-    public static TextView mensaje;
-    private static ProgressBar progressBar;
+public class MainActivity extends AppCompatActivity implements discordApiManager.callbackSetCorrectData, discordApiManager.callbackSetIncorrectData {
+    private SharedPreferences prefs;
+    private String token;
+    private TextView mensaje;
+    private ProgressBar progressBar;
+    private View.OnClickListener listener;
+    private View layout;
 
-    public static ProgressBar getProgressBar() { return progressBar; }
-    private static void setProgressBar(ProgressBar pb) { progressBar = pb; }
-
-    public static View.OnClickListener listener;
-    public static View layout;
-
-    public static View access;
-    public static TextView tokenEditText;
+    private View access;
+    private TextView tokenEditText;
 
 
     @Override
@@ -61,11 +57,27 @@ public class MainActivity extends AppCompatActivity {
         access.setOnClickListener(view -> {
             // Bloquear pantalla a la espera de que se desbloquee
             access.setClickable(false);
-            MainActivity.tokenEditText.setClickable(false);
+            tokenEditText.setClickable(false);
             progressBar.setVisibility(View.VISIBLE);
 
-            discordApiManager.setToken(MainActivity.tokenEditText.getText().toString());
-            discordApiManager.getSingleton();
+            discordApiManager.getSingleton().setToken(tokenEditText.getText().toString());
+            discordApiManager.getSingleton().getApi(this);
         });
     }
+
+    public void setCorrectCallback(){
+        mensaje.setText("Pulsa en cualquier lugar para continuar");
+        mensaje.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.INVISIBLE);
+        layout.setOnClickListener(listener);
+    }
+
+    public void setIncorrectCallback(){
+        mensaje.setVisibility(View.VISIBLE);
+        mensaje.setText("No se ha podido iniciar sesion en Discord. ¿El token es correcto?");
+        progressBar.setVisibility(View.INVISIBLE);
+        access.setClickable(true);
+        tokenEditText.setClickable(true);
+    }
+
 }

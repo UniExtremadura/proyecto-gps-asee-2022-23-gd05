@@ -1,5 +1,6 @@
 package es.unex.dcadmin.roomdb;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -13,7 +14,7 @@ import es.unex.dcadmin.command.Command;
 @Dao
 public interface CommandDao {
     @Query("SELECT * FROM command")
-    public List<Command> getAll();
+    public LiveData<List<Command>> getAll();
 
     @Query("SELECT count(*) FROM command WHERE trigger_text = :trigger")
     public int getByTrigger(String trigger);

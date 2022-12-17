@@ -76,10 +76,10 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
     public void clear(){
 
         for(Command c:mItems){//Para Ejecutar comando, destruye todos los comandos
-            discordApiManager.destruir(c.getTrigger_text());
+            discordApiManager.getSingleton().destruir(c.getTrigger_text());
         }
 
-        discordApiManager.destruir("!");
+        discordApiManager.getSingleton().destruir("!");
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
         SharedPreferences.Editor editor = prefs.edit();
@@ -127,14 +127,14 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
     public void delete(Command item){
         int pos = mItems.indexOf(item);
         mItems.remove(item);
-        discordApiManager.destruir(item.getTrigger_text());//De ejecutar comando
+        discordApiManager.getSingleton().destruir(item.getTrigger_text());//De ejecutar comando
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
         SharedPreferences.Editor editor = prefs.edit();
 
         if(prefs.getLong("default", -1) == item.getId())
         {
-            discordApiManager.destruir("!");
+            discordApiManager.getSingleton().destruir("!");
             editor.remove("default");
             editor.commit();
         }
@@ -142,6 +142,11 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
         notifyItemRemoved(pos);
         notifyItemRangeChanged(pos,mItems.size());
 
+    }
+
+    public void swap(List<Command> commands){
+        mItems = commands;
+        notifyDataSetChanged();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

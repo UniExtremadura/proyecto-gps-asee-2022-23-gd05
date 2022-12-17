@@ -7,7 +7,6 @@ import org.junit.Test;
 
 import java.lang.reflect.Field;
 
-import es.unex.dcadmin.command.Command;
 import es.unex.dcadmin.commandRecord.CommandRecord;
 
 public class CU09 {

@@ -6,16 +6,18 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.javacord.api.DiscordApi;
-
 import java.util.List;
 
-import es.unex.dcadmin.AppExecutors;
+import es.unex.dcadmin.AppContainer;
+import es.unex.dcadmin.DCAdmin;
 import es.unex.dcadmin.R;
-import es.unex.dcadmin.discord.discordApiManager;
+import es.unex.dcadmin.viewModels.MasterDetailCommandViewModel;
+import es.unex.dcadmin.viewModels.MasterDetailMemberViewModel;
+import es.unex.dcadmin.viewModels.MemberViewModel;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -33,6 +35,8 @@ public class UsersList extends Fragment {
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private UsersListAdapter mAdapter;
+    private MemberViewModel mViewModel;
+    private MasterDetailMemberViewModel sharedViewModel;
 
     public UsersList() {
         // Required empty public constructor
@@ -62,7 +66,8 @@ public class UsersList extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-        loadItems(); //Para cargar los datos
+        AppContainer appContainer = ((DCAdmin) getActivity().getApplication()).appContainer;
+        sharedViewModel = new ViewModelProvider(this, (ViewModelProvider.Factory) appContainer.mFactory).get(MasterDetailMemberViewModel.class);
     }
 
     @Override
@@ -83,13 +88,15 @@ public class UsersList extends Fragment {
             public void onItemClick(Member item) {
                 UsersDetail fragment = new UsersDetail();
 
-                Bundle bundle = new Bundle();
+                /*Bundle bundle = new Bundle();
                 bundle.putString(UsersDetail.ARG_PARAM1, item.getName());
                 bundle.putString(UsersDetail.ARG_PARAM2, item.getServer());
                 bundle.putLong(UsersDetail.ARG_PARAM3, item.getId());
                 bundle.putString(UsersDetail.ARG_PARAM4, item.getAvatar().toString());
 
-                fragment.setArguments(bundle);
+                fragment.setArguments(bundle);*/
+
+                sharedViewModel.select(item);
 
                 getActivity().getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_to_do_manager, fragment)
@@ -100,18 +107,16 @@ public class UsersList extends Fragment {
 
         mRecyclerView.setAdapter(mAdapter);
 
-        AppExecutors.getInstance().networkIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                List<Member> memberList = discordApiManager.getUsers();
-                getActivity().runOnUiThread(() -> mAdapter.load(memberList));
-            }
-        });
+        AppContainer appContainer = ((DCAdmin) getActivity().getApplication()).appContainer;
+        mViewModel = new ViewModelProvider(this, (ViewModelProvider.Factory) appContainer.mFactory).get(MemberViewModel.class);
+        mViewModel.getMembers().observe(getViewLifecycleOwner(), this::onUsersLoaded);
 
         return v;
     }
 
-    private void loadItems() {
+    private void onUsersLoaded(List<Member> members) {
+
+        getActivity().runOnUiThread(() -> mAdapter.swap(members));
 
     }
 }

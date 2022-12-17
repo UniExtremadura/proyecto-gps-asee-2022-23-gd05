@@ -3,6 +3,7 @@ package es.unex.dcadmin.users;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +17,10 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import es.unex.dcadmin.AppContainer;
+import es.unex.dcadmin.DCAdmin;
 import es.unex.dcadmin.R;
+import es.unex.dcadmin.viewModels.MasterDetailMemberViewModel;
 
 
 /**
@@ -41,6 +45,7 @@ public class UsersDetail extends Fragment {
     private TextView server_name;
     private TextView user_id;
     private ImageView user_avatar;
+    private MasterDetailMemberViewModel sharedViewModel;
 
     private Member member;
 
@@ -71,14 +76,14 @@ public class UsersDetail extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         Bundle bundle = this.getArguments();
         if(bundle != null){
-            try {
+            /*try {
                 member = new Member(bundle.getLong(ARG_PARAM3),
                                     bundle.getString(ARG_PARAM1),
                                     new URL(bundle.getString(ARG_PARAM4)),
                                     bundle.getString(ARG_PARAM2));
             } catch (MalformedURLException e) {
                 e.printStackTrace();
-            }
+            }*/
         }
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
@@ -87,6 +92,8 @@ public class UsersDetail extends Fragment {
             mParam3 = getArguments().getLong(ARG_PARAM3);
             mParam4 = getArguments().getString(ARG_PARAM4);
         }
+        AppContainer appContainer = ((DCAdmin) getActivity().getApplication()).appContainer;
+        sharedViewModel = new ViewModelProvider(this, (ViewModelProvider.Factory) appContainer.mFactory).get(MasterDetailMemberViewModel.class);
     }
 
     @Override
@@ -95,10 +102,22 @@ public class UsersDetail extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.users_detail, container, false);
 
-        user_name = v.findViewById(R.id.user_name);
-        server_name = v.findViewById(R.id.server_name);
-        user_id = v.findViewById(R.id.user_id);
-        user_avatar = v.findViewById(R.id.user_avatar);
+        sharedViewModel.getSelected().observe(getViewLifecycleOwner(), member -> {
+            user_name = v.findViewById(R.id.user_name);
+            server_name = v.findViewById(R.id.server_name);
+            user_id = v.findViewById(R.id.user_id);
+            user_avatar = v.findViewById(R.id.user_avatar);
+
+            user_name.setText(member.getName());
+            server_name.setText(member.getServer());
+            user_id.setText((String.valueOf(member.getId())));
+            try {
+                Picasso.get().load(String.valueOf(member.getAvatar().toURI())).into(user_avatar);
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+        });
+
 
         View screen = v.findViewById(R.id.userDetailScreen);
         screen.setOnClickListener(new View.OnClickListener() {
@@ -107,16 +126,6 @@ public class UsersDetail extends Fragment {
 
             }
         });
-
-        user_name.setText(member.getName());
-        server_name.setText(member.getServer());
-        user_id.setText((String.valueOf(member.getId())));
-
-        try {
-            Picasso.get().load(String.valueOf(member.getAvatar().toURI())).into(user_avatar);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
 
 
         return v;
